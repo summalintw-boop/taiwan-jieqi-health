@@ -1,0 +1,31 @@
+/* 血壓追蹤 */
+.bpw h3{margin:0 0 6px;font-size:1.05rem}
+.bp722{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:.9rem;line-height:1.6}
+.bp722 b{font-family:var(--mono);font-size:1.1rem;color:var(--accent)}
+.bp722 .sub{display:block;margin-top:2px}
+.bpslot{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 6px;font-size:.95rem}
+.bpslot input{width:1.1em;height:1.1em}
+.bpgrid{display:grid;grid-template-columns:3.6em repeat(3,minmax(0,1fr));gap:6px;align-items:center;margin-bottom:8px}
+.bph{font-size:.75rem;color:var(--muted)}
+.bpr{font-size:.8rem;color:var(--muted)}
+.bpgrid input{width:100%;box-sizing:border-box;padding:7px 6px;border:2px solid var(--line);border-radius:8px;background:var(--surface);font-family:var(--mono);font-size:1rem}
+.bpprog{margin:10px 0 4px;font-size:.9rem}
+.bpprog .bar{height:10px;background:var(--soft);border-radius:0 5px 5px 0;margin-top:4px;overflow:hidden}
+.bpprog .bar i{display:block;height:100%;background:var(--accent);border-radius:0 5px 5px 0}
+.bpchart{position:relative;margin:8px 0;max-width:560px}
+.bpchart svg{width:100%;height:auto;display:block}
+.bpchart .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:.75rem;padding:3px 8px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-115%)}
+.bplg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem;color:var(--muted)}
+.bplg i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px;border-radius:2px}
+.bptblwrap{overflow-x:auto;max-width:560px}
+.bptbl{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+.bptbl th,.bptbl td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:center;white-space:nowrap}
+.bptbl th:first-child,.bptbl td:first-child{text-align:left}
+.bptbl .avg td{font-weight:700;border-top:2px solid var(--line);white-space:normal}
+.bpact{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}
+.bpdoc{border:2px solid var(--accent);border-radius:12px;padding:12px 14px;margin:6px 0;font-size:1.15rem;line-height:1.8}
+.bpdoc h4{margin:0 0 4px;font-size:1.2rem}
+.bpdoc table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.bpdoc td,.bpdoc th{border-bottom:1px solid var(--line);padding:2px 6px;text-align:center}
+.bpdoc td:first-child,.bpdoc th:first-child{text-align:left}
+.dsrc{display:block;font-size:.75rem;color:var(--muted)}

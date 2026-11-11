@@ -120,6 +120,8 @@ details.day[open] .chev{transform:rotate(180deg)}
 
 /* 服務 */
 .svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.bpcard{grid-column:1/-1}
+/*@@BP_CSS@@*/
 .card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
 .card h3{margin:0 0 6px;font-size:1.05rem}
 .bp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0}
@@ -180,18 +182,8 @@ footer ul{padding-left:1.2em;margin:6px 0}
 
   <h2>健康服務</h2>
   <div class="svc">
-    <div class="card">
-      <h3>🩺 血壓紀錄</h3>
-      <form id="bp-form" class="bp" autocomplete="off">
-        <div><label for="bp-s">收縮壓</label><input id="bp-s" inputmode="numeric" pattern="[0-9]*" placeholder="120" required></div>
-        <div><label for="bp-d">舒張壓</label><input id="bp-d" inputmode="numeric" pattern="[0-9]*" placeholder="80" required></div>
-        <div><label for="bp-p">脈搏</label><input id="bp-p" inputmode="numeric" pattern="[0-9]*" placeholder="72"></div>
-      </form>
-      <button class="btn" type="submit" form="bp-form">記錄</button>
-      <div class="msg" id="bp-msg" role="status"></div>
-      <ul class="bplist" id="bp-list"></ul>
-      <div class="sub">只存在這支手機或電腦的瀏覽器，不會上傳。數值僅供自我追蹤，判讀請依醫師建議。</div>
-      <div id="bp-clear-wrap" style="margin-top:6px"></div>
+    <div class="card bpcard">
+<!--@@BP_HTML@@-->
     </div>
     <div class="card">
       <h3>🏥 找醫療院所</h3>
@@ -230,32 +222,13 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const WD='日一二三四五六';
 let DATA=null, REGION='北部', ROLE='public';
-const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
 
 /*@@RULES@@*/
+/*@@SHARED@@*/
 
 // ===== 依身分的建議 =====
 const ELDER={cvd:'早上起床先坐一下再下床；出門戴帽子、圍巾；每天量血壓，依醫囑使用藥物。',resp:'人多的地方戴口罩、勤洗手；還沒打流感疫苗，可以去打。',air:'空氣不好時少出門，出門戴口罩。',wetcold:'下雨路滑，出門穿防滑鞋，洗澡時小心地板。',co:'洗澡時打開窗戶，不要在屋內燒炭取暖。',skin:'洗澡水不要太燙，洗完擦乳液，不要抓破皮膚。',allergy:'早晚出門戴口罩，保暖口鼻；依醫囑使用藥物。',eczema:'流汗就換衣服，皮膚保持乾爽。',heat:'中午不要出門；每隔一段時間喝水；家裡開冷氣或電扇。',flood:'不要碰淹水的髒水，有傷口要包好。',dengue:'倒掉家裡積水，穿長袖、擦防蚊液。',typhoon:'準備 3 天份的藥和手電筒，聽從撤離通知。',gi:'食物要煮熟，剩菜冰起來，飯前便後洗手。',ev:'抱小孩前後要洗手。',calm:'維持規律作息，依醫囑使用藥物。'};
 const CARER={cvd:['幫長輩量血壓並記錄','提醒出門前戴帽子、圍巾','讓長輩知道胸痛、單側無力要打 119'],resp:['確認長輩已接種流感、新冠疫苗','長輩發燒咳嗽時，幫忙戴口罩、減少訪客'],air:['查看空氣品質，空氣差時改在室內活動'],wetcold:['檢查浴室防滑墊和扶手','下雨天陪同外出，或延後外出'],co:['確認熱水器裝在室外、通風良好','提醒洗澡時開窗'],skin:['洗澡後幫長輩擦乳液，留意有沒有抓傷'],allergy:['早晚外出提醒戴口罩、圍巾'],eczema:['臥床長輩每 2 小時翻身，檢查皮膚皺摺與尿布區'],heat:['確認長輩家裡的室溫，必要時開冷氣','提醒長輩隔一段時間喝水'],flood:['清理環境時讓長輩避開汙水，傷口要包紮'],dengue:['巡一遍家裡的積水容器並倒掉'],typhoon:['確認藥品、手電筒、行動電源','使用維生器材的長輩準備備援電源'],gi:['檢查冰箱剩菜，不給長輩吃放太久的食物'],ev:['家中有幼兒時，大人照顧前後先洗手'],calm:['打電話問候長輩近況']};
-const DANGER={cvd:['胸痛、單側手腳無力、口齒不清、臉歪嘴斜','立即撥 119'],heat:['體溫很高、意識不清、不再流汗','立即降溫並撥 119'],resp:['呼吸困難、嘴唇發紫、意識改變','儘速就醫'],co:['頭痛、頭暈、想吐，同住家人也不舒服','立刻開窗離開，撥 119'],allergy:['蕁麻疹合併呼吸困難、嘴唇或眼皮腫起','立即撥 119'],dengue:['發燒後腹痛、嘔吐、牙齦或皮膚出血','儘速就醫'],gi:['腹瀉嘔吐到喝不下水、尿量很少','儘速就醫'],eczema:['紅疹擴大、化膿或發燒','就醫'],skin:['皮膚破皮紅腫、化膿','就醫'],flood:['接觸汙水後發燒、肌肉痛','就醫並告知接觸史'],wetcold:['跌倒後無法起身、頭部撞擊','撥 119']};
-const LVT=['','○ 需留意','● 風險中','▲ 風險高'];
-
-// ===== 原因說明 =====
-function reasonOf(d){
-  const t=tempOf(d.date,REGION), r=[], f=parseWx(d);
-  if(t){
-    if(t.dmn<=-3)r.push(`最低溫比前一天低 ${(-t.dmn).toFixed(0)}°C，注意保暖`);
-    else if(t.mn<=12)r.push(`最低 ${t.mn.toFixed(0)}°C 偏冷，注意保暖`);
-    if(t.mx>=32)r.push(`最高 ${t.mx.toFixed(0)}°C，注意補水防中暑`);
-    if(t.rng>=8)r.push(`日夜溫差 ${t.rng.toFixed(0)}°C，早晚加衣`);
-  }
-  if(d.rain)r.push(f.ne?'東北季風帶來降雨，濕冷路滑':'有雨，路面濕滑');
-  if([11,12,1,2].includes(f.m))r.push('流感流行期');
-  if(!r.length)r.push('天氣變化不大');
-  return r.slice(0,2).join('；');
-}
-const md=s=>`${+s.slice(5,7)}/${+s.slice(8)}`;
-const wdOf=s=>WD[new Date(s+'T00:00:00Z').getUTCDay()];
 
 // ===== 今日 =====
 function todayData(){const ty=todayYMD();return DATA&&DATA.ncdr&&DATA.ncdr.days.find(x=>x.date===ty);}
@@ -281,8 +254,7 @@ function renderItems(){
     else body=`<div class="do"><b>建議：</b>${r.act}</div><div class="who">需要特別注意：${r.groups.join('、')}</div>`;
     return `<div class="it l${r.lv}"><div class="it-h"><span aria-hidden="true">${ICON[r.k]||''}</span><b>${r.name}</b><span class="lv l${r.lv}">${LVT[r.lv]}</span></div><div class="why">${r.why}</div>${body}</div>`;}).join('');
   el.querySelectorAll('input[data-ck]').forEach(c=>c.addEventListener('change',()=>{const o=store.get('v2-done-'+todayYMD(),{});o[c.dataset.ck]=c.checked;store.set('v2-done-'+todayYMD(),o);}));
-  const ds=rs.map(r=>DANGER[r.k]&&[r.k,DANGER[r.k]]).filter(Boolean);
-  $('danger').innerHTML=`<h3>⚠️ 出現這些情況，請就醫或撥 119</h3><ul>${ds.map(([k,[sign,act]])=>`<li>${ICON[k]||''} ${sign} → <b>${act}</b></li>`).join('')}<li>任何緊急狀況 → <span class="call">119</span></li></ul>`;
+  $('danger').innerHTML=dangerHTML(rs.map(r=>r.k));
 }
 // ===== 7 天 =====
 function renderDays(){
@@ -314,22 +286,6 @@ function renderMon(){
     const dir=Math.abs(c)<5?'→ 和上週差不多':c>0?`↑ 比上週增加 ${c.toFixed(0)}%`:`↓ 比上週減少 ${(-c).toFixed(0)}%`;
     return `<div class="mc"><b>${name}</b><div class="chg">${dir}</div><div class="sub">${L.y} 年第 ${L.w} 週・${scope}健保門診 ${L.opd.toLocaleString('zh-TW')} 人次<br>資料抓取 ${String(up).replace('T',' ').slice(0,16)}</div></div>`;}).join('');
 }
-// ===== 血壓 =====
-function bpStatus(s,d){if(s>=180||d>=120)return['⚠️ 非常高，請立即就醫或撥 119','var(--danger)'];if(s>=140||d>=90)return['偏高，請持續記錄並告訴您的醫師','var(--lv2)'];if(s<90||d<60)return['偏低，若頭暈不適請就醫','var(--lv2)'];return['在一般範圍內','var(--lv1)'];}
-function renderBP(){
-  const L=store.get('v2-bp',[]);
-  $('bp-list').innerHTML=L.slice(-7).reverse().map(x=>{const[st,col]=bpStatus(x.s,x.d);return `<li><span>${x.t}</span><span><b>${x.s}/${x.d}</b>${x.p?`・脈搏 ${x.p}`:''}</span><span style="color:${col}">${st.split('，')[0]}</span></li>`;}).join('');
-  $('bp-clear-wrap').innerHTML=L.length?'<button class="btn ghost" type="button" id="bp-clear">清除全部紀錄</button>':'';
-  const b=$('bp-clear'); if(b)b.onclick=()=>{if(b.dataset.c){store.set('v2-bp',[]);$('bp-msg').textContent='已清除。';renderBP();}else{b.dataset.c='1';b.textContent='再按一次確定清除';}};
-}
-$('bp-form').addEventListener('submit',e=>{e.preventDefault();
-  const s=+$('bp-s').value, d=+$('bp-d').value, p=+$('bp-p').value||0;
-  if(!(s>=50&&s<=260&&d>=30&&d<=180)){$('bp-msg').textContent='請輸入正確的數字，例如 120 和 80。';return;}
-  const n=new Date(), t=`${n.getMonth()+1}/${n.getDate()} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
-  const L=store.get('v2-bp',[]); L.push({t,s,d,p}); store.set('v2-bp',L.slice(-60));
-  const[st,col]=bpStatus(s,d); $('bp-msg').innerHTML=`已記錄 ${s}/${d}：<b style="color:${col}">${st}</b>`;
-  e.target.reset(); renderBP();});
-
 // ===== 朗讀 =====
 function speakText(){
   const d=todayData(), t=tempOf(todayYMD(),REGION), rs=d?risks(d,REGION).slice(0,3):[];
@@ -358,10 +314,11 @@ REGION=store.get('v2-region','北部'); if(!STN[REGION])REGION='北部'; ROLE=st
 
 function renderAll(){renderHero();renderItems();renderDays();renderMon();
   const up=(DATA&&DATA.updated)||{}; $('f-upd').textContent=`本頁資料：天氣 ${String(up.ncdr||'—').replace('T',' ').slice(0,16)}・溫度 ${String(up.temp||'—').replace('T',' ').slice(0,16)}・疾管署 ${String(up.cdc||'—').replace('T',' ').slice(0,16)}`;}
-applyPrefs(); renderHero(); renderBP();
+applyPrefs(); renderHero();
 fetch('../data.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
   DATA=j; if(j.ncdr&&j.ncdr.days){j.ncdr.days.forEach((d,i)=>{const p=j.ncdr.days[i-1];d._turn=!!(p&&p.type!==d.type);});}
   renderAll();
 }).catch(()=>{$('h-wx').textContent='讀不到資料，請稍後再試';});
 })();
+/*@@BP_JS@@*/
 </script>

@@ -1,0 +1,323 @@
+<title>節令健康曆</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 版型：以「節氣」為列、「候」（約 5 天）為欄的節令曆；每列附本節氣統計與 30 年同節氣比較 */
+:root{
+  --bg:#f3f5f6; --surface:#ffffff; --ink:#132029; --muted:#4f5d69; --line:#d3dbe1; --soft:#e8edf0;
+  --accent:#1f5fa8; --accent-ink:#fff; --accent-soft:#e2ecf7; --fcst:#fbefe6;
+  --lv1:#2e7d5b; --lv2:#9a5b00; --lv3:#b3261e; --lv1-bg:#e3f2ea; --lv2-bg:#fdf0dc; --lv3-bg:#fbe4e2;
+  --danger:#b3261e; --danger-bg:#fdecea; --warm:#b3401e; --cool:#1f5fa8;
+  --fd:"Noto Serif TC","Songti TC","PMingLiU",serif; --f:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  font-size:17px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141a; --surface:#16202a; --ink:#eef3f7; --muted:#a8b5c1; --line:#2c3a47; --soft:#1d2934;
+  --accent:#7fb2ee; --accent-ink:#0e141a; --accent-soft:#1c2f45; --fcst:#2e2419;
+  --lv1:#6fd3a3; --lv2:#f2b45a; --lv3:#ff8a80; --lv1-bg:#173326; --lv2-bg:#3a2a12; --lv3-bg:#3f1c1a;
+  --danger:#ff8a80; --danger-bg:#3f1c1a; --warm:#ff9a7a; --cool:#7fb2ee; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141a; --surface:#16202a; --ink:#eef3f7; --muted:#a8b5c1; --line:#2c3a47; --soft:#1d2934;
+  --accent:#7fb2ee; --accent-ink:#0e141a; --accent-soft:#1c2f45; --fcst:#2e2419;
+  --lv1:#6fd3a3; --lv2:#f2b45a; --lv3:#ff8a80; --lv1-bg:#173326; --lv2-bg:#3a2a12; --lv3-bg:#3f1c1a;
+  --danger:#ff8a80; --danger-bg:#3f1c1a; --warm:#ff9a7a; --cool:#7fb2ee; color-scheme:dark}
+:root[data-size="lg"]{font-size:20px}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:1rem;line-height:1.65;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-block:18px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:var(--ink)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sub{font-size:.8rem;color:var(--muted)}
+h1{font-family:var(--fd);font-weight:900;font-size:1.7rem;margin:0;letter-spacing:.04em}
+h2{font-family:var(--fd);font-size:1.3rem;margin:2rem 0 .3rem;letter-spacing:.03em}
+.lede{color:var(--muted);font-size:.9rem;margin:0 0 .8rem;max-width:72ch}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px;border-bottom:2px solid var(--line);padding-bottom:10px}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tools select{padding:5px 8px;border:2px solid var(--line);border-radius:8px;background:var(--surface)}
+.tbtn{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:.8rem;cursor:pointer;text-decoration:none;color:var(--ink)}
+.tbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+
+/* 現在的節氣 */
+.now{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:0;background:var(--surface);border:2px solid var(--line);border-radius:14px;margin-top:14px;overflow:hidden}
+.now>div{padding:16px 18px;min-width:0}
+.now>div+div{border-left:2px solid var(--line)}
+@media (max-width:760px){.now{grid-template-columns:minmax(0,1fr)}.now>div+div{border-left:0;border-top:2px solid var(--line)}}
+.tn{font-family:var(--fd);font-weight:900;font-size:2.4rem;line-height:1.1;letter-spacing:.08em}
+.hou{display:flex;gap:4px;margin:8px 0 4px}
+.hou span{flex:1;text-align:center;font-size:.8rem;padding:3px 0;border-radius:6px;background:var(--soft)}
+.hou span.on{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 16px}
+.st>span{display:block;font-size:.75rem;color:var(--muted)}
+.st b{font-family:var(--mono);font-weight:500;font-size:1.1rem;white-space:nowrap;display:block}
+.st .diff{display:block}
+.diff{font-size:.85rem;font-weight:700}
+.diff.w{color:var(--warm)}.diff.c{color:var(--cool)}
+.riskc{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:.9rem}
+
+/* 節令曆 */
+.terms{display:flex;flex-direction:column;gap:12px}
+.term{background:var(--surface);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+.term.cur{border-color:var(--accent)}
+.term-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:10px 14px;background:var(--soft)}
+.term.cur .term-h{background:var(--accent-soft)}
+.term-h .nm{font-family:var(--fd);font-weight:900;font-size:1.3rem;letter-spacing:.06em}
+.term-h .dr{font-family:var(--mono);font-size:.85rem;color:var(--muted)}
+.term-h .sm{font-size:.85rem;margin-left:auto}
+.hgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.hcol{padding:8px 8px 10px;min-width:0}
+.hcol+.hcol{border-left:1px dashed var(--line)}
+@media (max-width:760px){.hgrid{grid-template-columns:minmax(0,1fr)}.hcol+.hcol{border-left:0;border-top:1px dashed var(--line)}}
+.hcol-h{font-size:.75rem;color:var(--muted);margin:0 2px 4px;font-weight:700}
+.dayrow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.dc{border:2px solid transparent;border-radius:8px;background:var(--soft);padding:4px 4px 5px;min-height:92px;display:flex;flex-direction:column;gap:1px;text-align:left;cursor:pointer;min-width:0}
+.dc.fc{background:var(--fcst)}
+.dc.none{background:transparent;border:1px dashed var(--line);cursor:default;color:var(--muted)}
+.dc.today{border-color:var(--accent)}
+.dc.sel{box-shadow:0 0 0 3px var(--accent)}
+.dc .d{font-family:var(--mono);font-size:.78rem;font-weight:500}
+.dc .d small{font-family:var(--f);font-size:.68rem;color:var(--muted);margin-left:2px}
+.dc .w{font-size:.7rem;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.dc .t{font-family:var(--mono);font-size:.72rem;white-space:nowrap}
+.lo{color:var(--cool)}.hi{color:var(--warm)}
+.dc .r{display:flex;flex-wrap:wrap;gap:2px;margin-top:auto}
+.chip{font-size:.66rem;line-height:1.5;padding:0 3px;border-radius:4px;white-space:nowrap;border:1px solid currentColor}
+.chip.l2{color:var(--lv2);background:var(--lv2-bg)}.chip.l3{color:var(--lv3);background:var(--lv3-bg)}
+.rain{display:inline-block;font-size:.62rem;background:var(--accent);color:var(--accent-ink);border-radius:3px;padding:0 3px;margin-right:2px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--muted);margin-top:8px}
+
+/* 日細節 */
+.detail{background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:14px 16px;margin-top:12px}
+.detail h3{margin:0 0 4px;font-size:1.15rem}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px 14px;margin:8px 0}
+.kv span{display:block;font-size:.72rem;color:var(--muted)}
+.kv b{font-family:var(--mono);font-weight:500}
+.ri{border-top:1px dashed var(--line);padding:8px 0}
+.ri .lv{font-size:.72rem;font-weight:900;padding:1px 8px;border-radius:999px;border:2px solid currentColor;margin-left:6px}
+.lv.l3{color:var(--lv3);background:var(--lv3-bg)}.lv.l2{color:var(--lv2);background:var(--lv2-bg)}.lv.l1{color:var(--lv1);background:var(--lv1-bg)}
+.ri p{margin:2px 0;font-size:.9rem}
+.ri .act{font-size:.88rem;color:var(--muted)}
+.danger{border:3px solid var(--danger);background:var(--danger-bg);border-radius:12px;padding:10px 14px;margin-top:10px}
+.danger h3{margin:0 0 4px;font-size:1rem;color:var(--danger)}
+.danger ul{margin:0;padding-left:1.2em;font-size:.9rem}
+.call{font-family:var(--mono);font-size:1.15rem;color:var(--danger);font-weight:500}
+
+/* 一年 24 節氣 */
+.yrwrap{overflow-x:auto;background:var(--surface);border:2px solid var(--line);border-radius:12px}
+table.yr{border-collapse:collapse;font-size:.78rem;min-width:1000px;width:100%;font-variant-numeric:tabular-nums}
+table.yr th,table.yr td{padding:4px 3px;text-align:center;border-bottom:1px solid var(--line)}
+table.yr th:first-child,table.yr td:first-child{text-align:left;white-space:nowrap;padding-left:10px;position:sticky;left:0;background:var(--surface)}
+table.yr thead th{font-family:var(--fd);font-size:.85rem}
+table.yr .cur{background:var(--accent-soft);font-weight:700}
+.lvc{display:inline-block;min-width:2.2em;border-radius:4px;padding:0 2px}
+.lvc.v0{color:var(--muted)}.lvc.v1{color:var(--lv1)}.lvc.v2{color:var(--lv2);background:var(--lv2-bg)}.lvc.v3{color:var(--lv3);background:var(--lv3-bg);font-weight:700}
+
+/* 群體監測 */
+.note{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:.85rem}
+.mon{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:10px}
+.mc{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.mrow{display:grid;grid-template-columns:3.2em minmax(0,1fr) 4.6em;gap:6px;align-items:center;font-size:.82rem}
+.mrow .bar{height:10px;border-radius:0 4px 4px 0;background:var(--accent)}
+.mrow .v{font-family:var(--mono);text-align:right}
+.mrow.cur{font-weight:700}
+
+.card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px}
+.btn{border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:6px 14px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.msg{font-size:.88rem;margin-top:6px}
+/*@@BP_CSS@@*/
+footer{margin-top:2.5rem;padding-top:12px;border-top:2px solid var(--line);font-size:.75rem;color:var(--muted)}
+footer ul{padding-left:1.2em;margin:6px 0}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div><h1>節令健康曆</h1><div class="sub">以節氣與「候」（約 5 天）排列的健康提醒・第三版</div></div>
+    <div class="tools">
+      <label for="region" class="sub">地區</label>
+      <select id="region"><option value="北部">北部（臺北）</option><option value="中部">中部（臺中）</option><option value="南部">南部（高雄）</option><option value="東部">東部（宜蘭）</option></select>
+      <button class="tbtn" id="t-size" aria-pressed="false">大字</button>
+      <a class="tbtn" href="../v2/">今日健康提醒</a>
+      <a class="tbtn" href="../">完整版</a>
+    </div>
+  </div>
+
+  <section class="now" id="now" aria-live="polite">
+    <div>
+      <div class="sub">現在的節氣</div>
+      <div class="tn" id="n-name">—</div>
+      <div class="sub" id="n-range"></div>
+      <div class="hou" id="n-hou"></div>
+      <div class="sub" id="n-desc"></div>
+    </div>
+    <div>
+      <div class="sub" id="n-sh">本節氣統計</div>
+      <div class="stats" id="n-stats"></div>
+      <div class="riskc" id="n-risk"></div>
+    </div>
+  </section>
+
+  <h2>節令曆</h2>
+  <p class="lede">每一列是一個節氣，分成初候、二候、三候（各約 5 天）。淡橘色是 NCDR AI 推估的未來天氣，虛線格是還沒有資料的日子。點一天看細節。</p>
+  <div class="terms" id="terms"></div>
+  <div class="legend"><span>▲ 風險高　● 風險中（只標中以上）</span><span><span class="rain">雨</span>有雨日</span><span><span class="lo">低溫</span>–<span class="hi">高溫</span>°C</span><span>框線：今天</span></div>
+  <div class="detail" id="detail" hidden></div>
+
+  <h2>一年 24 節氣</h2>
+  <p class="lede">各節氣的 30 年平均溫度（1991–2020，<span id="yr-st"></span>）與常見疾病的季節性。疾病等級依疾管署歷年流行季節與文獻歸納，以節氣所在月份換算，不是即時預測。</p>
+  <div class="yrwrap"><table class="yr" id="yr"></table></div>
+
+  <h2>群體監測：依節氣看就診趨勢</h2>
+  <div class="note"><b>這是整個地區的就診人次，不是個人生病的機率。</b>疾管署開放資料「健保門診人次」為週資料，這裡把每週歸到它所在的節氣，計算每週平均人次（週與節氣的對應為近似值）。</div>
+  <div class="mon" id="mon"></div>
+
+  <h2>血壓追蹤</h2>
+  <div class="card">
+<!--@@BP_HTML@@-->
+  </div>
+
+  <footer>
+    <div>資料來源與更新</div>
+    <ul>
+      <li>天氣類型：國家災害防救科技中心 AI 天氣判識日曆（實驗性產品）；每日溫度：Open-Meteo 模式資料。每天 06:10、14:10 更新，天氣以中央氣象署為準。</li>
+      <li>節氣 30 年平均溫度：Open-Meteo 歷史資料（ERA5 再分析，1991–2020），依太陽黃經把每天歸入節氣後平均；與氣象署測站平年值可能略有差異。</li>
+      <li>群體監測：疾病管制署開放資料（健保門診人次），每週三、五更新。就醫警訊附各自的官方出處。</li>
+      <li>健康提醒依天氣、溫度與月份規則產生，由 Summalin 彙整現有公開資料製作，內容待公共衛生及醫療專家審閱。</li>
+      <li id="f-upd"></li>
+    </ul>
+    本頁僅供健康資訊參考，不能取代醫療診斷。急症請撥 119。
+  </footer>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD='日一二三四五六';
+let DATA=null, NORM=null, REGION='北部', SEL=null;
+
+/*@@RULES@@*/
+/*@@SHARED@@*/
+
+const HOU=['初候','二候','三候'];
+const addDays=(s,n)=>new Date(Date.parse(s+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);
+const ymdOf=o=>`${o.y}-${String(o.m).padStart(2,'0')}-${String(o.d).padStart(2,'0')}`;
+// 指定節氣 i、在 jd 附近那一次的起訖日
+function termSpan(i,nearJD){
+  const lon=sunLon(nearJD), g=nearJD+(((i*15-lon+540)%360)-180)*365.2422/360;
+  const sj=solve(i*15,g), ej=solve(((i+1)%24)*15,sj+15.2);
+  const s=ymdOf(tw(sj)), e=addDays(ymdOf(tw(ej)),-1);
+  const days=[];for(let d=s;d<=e;d=addDays(d,1))days.push(d);
+  return{i,s,e,days};
+}
+const dayMap=()=>{const m={};((DATA&&DATA.ncdr&&DATA.ncdr.days)||[]).forEach(d=>m[d.date]=d);return m;};
+const normOf=i=>{const st=STN[REGION][0];return NORM&&NORM.stations&&NORM.stations[st]?NORM.stations[st][i]:null;};
+function termStats(span,dm){
+  const ds=span.days.map(x=>dm[x]).filter(Boolean), ts=ds.map(d=>tempOf(d.date,REGION)).filter(Boolean);
+  const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  const cnt={},types={};ds.forEach(d=>{types[d.type]=(types[d.type]||0)+1;risks(d,REGION).filter(r=>r.lv>=2).forEach(r=>cnt[r.k]=(cnt[r.k]||0)+1);});
+  return{n:ds.length,total:span.days.length,mx:mean(ts.map(t=>t.mx)),mn:mean(ts.map(t=>t.mn)),rain:ds.filter(d=>d.rain).length,types,cnt,fc:ds.filter(d=>d.kind!=='obs').length};
+}
+const diffTxt=(v,n)=>{if(v==null||n==null)return'';const x=v-n;return Math.abs(x)<0.5?'<span class="diff">和 30 年平均差不多</span>':`<span class="diff ${x>0?'w':'c'}">比 30 年平均${x>0?'高':'低'} ${Math.abs(x).toFixed(1)}°C</span>`;};
+
+// ===== 現在的節氣 =====
+function renderNow(){
+  const ty=todayYMD(), c=termAt(ty), sp=termSpan(c.i,c.jd), k=sp.days.indexOf(ty), h=Math.min(2,Math.floor(k/5)), t=T[c.i];
+  $('n-name').textContent=t.n;
+  $('n-range').textContent=`${md(sp.s)}–${md(sp.e)}，共 ${sp.days.length} 天・今天是第 ${k+1} 天（${HOU[h]}）`;
+  $('n-hou').innerHTML=HOU.map((x,j)=>{const a=sp.days[j*5],b=sp.days[j===2?sp.days.length-1:j*5+4];return `<span class="${j===h?'on':''}">${x}<br><small>${md(a)}–${md(b)}</small></span>`;}).join('');
+  $('n-desc').textContent=t.c;
+  if(!DATA)return;
+  const s=termStats(sp,dayMap()), nm=normOf(c.i);
+  $('n-sh').textContent=`本節氣統計・${STN[REGION][0]}（有資料 ${s.n}/${s.total} 天，其中 ${s.fc} 天為推估）`;
+  $('n-stats').innerHTML=`
+    <div class="st"><span>平均最低／最高溫</span><b><span class="lo">${s.mn!=null?s.mn.toFixed(1):'--'}</span>／<span class="hi">${s.mx!=null?s.mx.toFixed(1):'--'}</span>°C</b>${diffTxt(s.mn!=null?(s.mn+s.mx)/2:null,nm?(nm[0]+nm[1])/2:null)}</div>
+    <div class="st"><span>30 年同節氣平均</span><b>${nm?`<span class="lo">${nm[1].toFixed(1)}</span>／<span class="hi">${nm[0].toFixed(1)}</span>°C`:'--'}</b></div>
+    <div class="st"><span>有雨日</span><b>${s.rain} 天</b></div>
+    <div class="st"><span>主要天氣類型</span><b style="font-family:var(--f);font-size:.95rem;white-space:normal">${Object.entries(s.types).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k,v])=>`${esc(k)} ${v} 天`).join('、')||'--'}</b></div>`;
+  const rk=Object.entries(s.cnt).sort((a,b)=>b[1]-a[1]);
+  $('n-risk').innerHTML=rk.length?'<span class="sub" style="width:100%">風險中以上的日數：</span>'+rk.map(([k,v])=>`<span>${ICON[k]||''} ${SHORT[k]} <b>${v}</b> 天</span>`).join(''):'<span class="sub">本節氣沒有中等以上風險的日子。</span>';
+}
+
+// ===== 節令曆 =====
+function renderTerms(){
+  const days=(DATA&&DATA.ncdr&&DATA.ncdr.days)||[]; if(!days.length){$('terms').innerHTML='<div class="sub">沒有天氣資料。</div>';return;}
+  const dm=dayMap(), ty=todayYMD(), seen=[], spans=[];
+  days.forEach(d=>{const c=termAt(d.date);if(!seen.includes(c.i)){seen.push(c.i);spans.push(termSpan(c.i,c.jd));}});
+  const curI=termAt(ty).i;
+  $('terms').innerHTML=spans.map(sp=>{
+    const s=termStats(sp,dm), nm=normOf(sp.i), cur=sp.i===curI;
+    const hcols=[0,1,2].map(j=>{const ds=sp.days.slice(j*5,j===2?undefined:j*5+5);
+      return `<div class="hcol"><div class="hcol-h">${HOU[j]}　${md(ds[0])}–${md(ds[ds.length-1])}</div><div class="dayrow">${ds.map(x=>cell(x,dm[x],ty)).join('')}</div></div>`;}).join('');
+    const rk=Object.entries(s.cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    return `<div class="term${cur?' cur':''}"><div class="term-h"><span class="nm">${T[sp.i].n}${cur?'<span class="sub" style="margin-left:6px">現在</span>':''}</span><span class="dr">${md(sp.s)}–${md(sp.e)}</span>
+      <span class="sm">${s.n?`平均 <span class="lo">${s.mn.toFixed(0)}</span>–<span class="hi">${s.mx.toFixed(0)}</span>°C`:''}${nm?`（30 年平均 ${nm[1].toFixed(0)}–${nm[0].toFixed(0)}°C）`:''}${s.rain?`・雨 ${s.rain} 天`:''}${rk.length?'・'+rk.map(([k,v])=>`${ICON[k]||''}${SHORT[k]} ${v} 天`).join('、'):''}${s.n<s.total?`<span class="sub">（資料 ${s.n}/${s.total} 天）</span>`:''}</span></div>
+      <div class="hgrid">${hcols}</div></div>`;}).join('');
+}
+function cell(x,d,ty){
+  const wd=WD[new Date(x+'T00:00:00Z').getUTCDay()];
+  if(!d)return `<div class="dc none"><span class="d">${md(x)}<small>${wd}</small></span><span class="w">—</span></div>`;
+  const t=tempOf(x,REGION), rs=risks(d,REGION).filter(r=>r.lv>=2).slice(0,3);
+  return `<button class="dc${d.kind!=='obs'?' fc':''}${x===ty?' today':''}${x===SEL?' sel':''}" data-d="${x}" aria-label="${x} ${esc(d.type)}">
+    <span class="d">${md(x)}<small>${wd}</small></span>
+    <span class="w">${d.rain?'<span class="rain">雨</span>':''}${esc(d.type)}</span>
+    ${t?`<span class="t"><span class="lo">${t.mn.toFixed(0)}</span>–<span class="hi">${t.mx.toFixed(0)}</span>°</span>`:''}
+    <span class="r">${rs.map(r=>`<span class="chip l${r.lv}" title="${r.name}">${r.lv>=3?'▲':'●'}${ICON[r.k]||''}${ABBR[r.k]||''}</span>`).join('')}</span></button>`;
+}
+function renderDetail(){
+  const el=$('detail'), d=dayMap()[SEL]; if(!d){el.hidden=true;return;}
+  const t=tempOf(SEL,REGION), rs=risks(d,REGION), c=termAt(SEL), sp=termSpan(c.i,c.jd), k=sp.days.indexOf(SEL);
+  el.hidden=false;
+  el.innerHTML=`<div class="sub">${T[c.i].n}・${HOU[Math.min(2,Math.floor(k/5))]}・第 ${k+1} 天・${d.kind==='obs'?'已判識':'AI 推估'}</div>
+    <h3>${md(SEL)}（星期${wdOf(SEL)}）${esc(d.season)}・${esc(d.type)}${d.rain?'・有雨':''}</h3>
+    <div class="kv">${t?`<div><span>最低／最高溫（${t.st}）</span><b>${t.mn.toFixed(1)}／${t.mx.toFixed(1)}°C</b></div><div><span>日夜溫差</span><b>${t.rng.toFixed(1)}°C</b></div><div><span>最低溫比前一天</span><b>${t.dmn>0?'+':''}${t.dmn.toFixed(1)}°C</b></div>`:''}<div><span>為什麼要注意</span><b style="font-family:var(--f)">${reasonOf(d)}</b></div></div>
+    ${rs.map(r=>`<div class="ri"><b>${ICON[r.k]||''} ${r.name}</b><span class="lv l${r.lv}">${LVT[r.lv]}</span><p>${r.why}</p><div class="act">建議：${r.act}</div><div class="act">需要特別注意：${r.groups.join('、')}</div></div>`).join('')}
+    ${rs.some(r=>DANGER[r.k])?`<div class="danger">${dangerHTML(rs.map(r=>r.k))}</div>`:''}
+    <div class="sub" style="margin-top:6px">資料依據：NCDR AI 天氣判識日曆；溫度 Open-Meteo（${STN[REGION][0]}）；疾病對應為本平台依天氣、溫度、月份的規則，非個人診斷。</div>`;
+}
+$('terms').addEventListener('click',e=>{const b=e.target.closest('.dc[data-d]');if(!b)return;SEL=b.dataset.d;renderTerms();renderDetail();$('detail').scrollIntoView({behavior:'smooth',block:'nearest'});});
+
+// ===== 一年 24 節氣 =====
+function renderYear(){
+  const ty=todayYMD(), c=termAt(ty), st=STN[REGION][0];
+  $('yr-st').textContent=st;
+  // 從今年立春（i=21）開始排 24 個節氣
+  let jd=c.jd; const lon=sunLon(jd); jd=solve(315,jd-((lon-315+360)%360)*365.2422/360);
+  const cols=[];for(let k=0;k<24;k++){const i=(21+k)%24, sj=solve(i*15,jd+k*15.22), mid=tw(sj+7.6);cols.push({i,s:tw(sj),m:mid.m});}
+  const lvT=['低','中','高','很高'];
+  let h='<thead><tr><th>節氣</th>'+cols.map(x=>`<th class="${x.i===c.i?'cur':''}">${T[x.i].n}<div class="sub" style="font-family:var(--mono)">${x.s.m}/${x.s.d}</div></th>`).join('')+'</tr></thead><tbody>';
+  if(NORM&&NORM.stations[st]){
+    h+='<tr><td>平均最高溫 °C</td>'+cols.map(x=>`<td class="${x.i===c.i?'cur':''}"><span class="hi">${NORM.stations[st][x.i][0].toFixed(0)}</span></td>`).join('')+'</tr>';
+    h+='<tr><td>平均最低溫 °C</td>'+cols.map(x=>`<td class="${x.i===c.i?'cur':''}"><span class="lo">${NORM.stations[st][x.i][1].toFixed(0)}</span></td>`).join('')+'</tr>';
+  }
+  SEA.forEach(([n,a])=>{h+=`<tr><td>${n}</td>`+cols.map(x=>{const v=a[x.m-1];return `<td class="${x.i===c.i?'cur':''}"><span class="lvc v${v}">${lvT[v]}</span></td>`;}).join('')+'</tr>';});
+  $('yr').innerHTML=h+'</tbody>';
+}
+
+// ===== 群體監測（依節氣）=====
+function weekMid(y,w){const j=new Date(Date.UTC(y,0,1)), wd=j.getUTCDay(), s1=Date.UTC(y,0,1)+((wd<=3?-wd:7-wd))*86400000;return new Date(s1+((w-1)*7+3)*86400000).toISOString().slice(0,10);}
+function renderMon(){
+  if(!DATA||!DATA.cdc){$('mon').innerHTML='<div class="sub">沒有疾管署資料。</div>';return;}
+  const curI=termAt(todayYMD()).i, scope={北部:'北部 6 縣市',中部:'中部 5 縣市',南部:'南部 6 縣市',東部:'東部 3 縣市'}[REGION];
+  $('mon').innerHTML=CDCK.map(([k,name])=>{
+    const R=DATA.cdc[k]&&DATA.cdc[k].regions[REGION]; if(!R)return'';
+    const g=[];R.weeks.forEach(w=>{const i=termAt(weekMid(w.y,w.w)).i;let x=g.find(o=>o.i===i);if(!x){x={i,sum:0,n:0,w0:w.w,w1:w.w};g.push(x);}x.sum+=w.opd;x.n++;x.w1=w.w;});
+    const max=Math.max(...g.map(x=>x.sum/x.n));
+    return `<div class="mc"><b>${name}</b><div class="sub">${scope}・每週平均健保門診人次</div>${g.map(x=>`<div class="mrow${x.i===curI?' cur':''}"><span>${T[x.i].n}</span><span><span class="bar" style="display:block;width:${x.sum/x.n/max*100}%"></span></span><span class="v">${Math.round(x.sum/x.n).toLocaleString('zh-TW')}</span></div>`).join('')}<div class="sub">第 ${g[0].w0}–${g[g.length-1].w1} 週，共 ${R.weeks.length} 週${g[g.length-1].i===curI?'；最後一列只有部分週':''}</div></div>`;}).join('');
+}
+
+function renderAll(){renderNow();renderTerms();renderDetail();renderYear();renderMon();
+  const up=(DATA&&DATA.updated)||{}; $('f-upd').textContent=`本頁資料：天氣 ${String(up.ncdr||'—').replace('T',' ').slice(0,16)}・溫度 ${String(up.temp||'—').replace('T',' ').slice(0,16)}・疾管署 ${String(up.cdc||'—').replace('T',' ').slice(0,16)}`;}
+const applySize=()=>{const v=store.get('v3-size',false);document.documentElement.dataset.size=v?'lg':'';$('t-size').setAttribute('aria-pressed',v);};
+$('t-size').onclick=()=>{store.set('v3-size',!store.get('v3-size',false));applySize();};
+REGION=store.get('v3-region','北部'); if(!STN[REGION])REGION='北部'; $('region').value=REGION;
+$('region').onchange=e=>{REGION=e.target.value;store.set('v3-region',REGION);renderAll();};
+applySize(); renderNow(); renderYear();
+Promise.all([fetch('../data.json',{cache:'no-cache'}).then(r=>r.json()),fetch('../term_normals.json').then(r=>r.ok?r.json():null).catch(()=>null)]).then(([j,n])=>{
+  DATA=j; NORM=n; if(j.ncdr&&j.ncdr.days){j.ncdr.days.forEach((d,i)=>{const p=j.ncdr.days[i-1];d._turn=!!(p&&p.type!==d.type);});}
+  SEL=todayYMD(); renderAll();
+}).catch(()=>{$('terms').innerHTML='<div class="sub">讀不到資料，請稍後再試。</div>';});
+})();
+/*@@BP_JS@@*/
+</script>

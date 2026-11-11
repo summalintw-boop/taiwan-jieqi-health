@@ -1,0 +1,36 @@
+<div class="bpw" id="bpw">
+  <h3>🩺 血壓追蹤（722 原則）</h3>
+  <div class="bp722">
+    <b>7</b> 連續 7 天量・<b>2</b> 早上起床後、晚上睡前各量一次・<b>2</b> 每次量兩遍取平均
+    <span class="sub">量之前安靜坐著休息 5 分鐘；剛運動、喝咖啡或濃茶、抽菸後不要馬上量。出處：<a href="https://www.mohw.gov.tw/cp-2704-87239-1.html" target="_blank" rel="noopener">國民健康署</a></span>
+  </div>
+  <form id="bp-form" autocomplete="off">
+    <div class="bpslot" role="radiogroup" aria-label="量測時段">
+      <label><input type="radio" name="bp-slot" value="am" id="bp-am"> 早上（起床後）</label>
+      <label><input type="radio" name="bp-slot" value="pm" id="bp-pm"> 晚上（睡前）</label>
+    </div>
+    <div class="bpgrid">
+      <span></span><span class="bph">收縮壓</span><span class="bph">舒張壓</span><span class="bph">脈搏</span>
+      <span class="bpr">第一遍</span>
+      <input id="bp-s1" inputmode="numeric" aria-label="第一遍收縮壓" placeholder="120" required>
+      <input id="bp-d1" inputmode="numeric" aria-label="第一遍舒張壓" placeholder="80" required>
+      <input id="bp-p1" inputmode="numeric" aria-label="第一遍脈搏" placeholder="72">
+      <span class="bpr">第二遍</span>
+      <input id="bp-s2" inputmode="numeric" aria-label="第二遍收縮壓" placeholder="選填">
+      <input id="bp-d2" inputmode="numeric" aria-label="第二遍舒張壓" placeholder="選填">
+      <input id="bp-p2" inputmode="numeric" aria-label="第二遍脈搏" placeholder="選填">
+    </div>
+    <button class="btn" type="submit">記錄（兩遍會自動平均）</button>
+  </form>
+  <div class="msg" id="bp-msg" role="status"></div>
+  <div class="bpprog" id="bp-prog"></div>
+  <div class="bpchart" id="bp-chart"></div>
+  <div class="bptblwrap"><table class="bptbl" id="bp-tbl"></table></div>
+  <div class="bpact">
+    <button class="btn ghost" type="button" id="bp-doc">給醫師看</button>
+    <button class="btn ghost" type="button" id="bp-copy">複製 7 天紀錄</button>
+    <button class="btn ghost" type="button" id="bp-clear">清除全部紀錄</button>
+  </div>
+  <div class="bpdoc" id="bp-docview" hidden></div>
+  <div class="sub">只存在這支手機或電腦的瀏覽器，不會上傳；換手機或清除瀏覽資料會消失。國健署：正常血壓應小於 120/80 mmHg；數值偏高或波動大，請帶紀錄給醫師判讀。</div>
+</div>

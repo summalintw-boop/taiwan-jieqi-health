@@ -175,12 +175,12 @@ def risks(d: dict, region: str, data: dict) -> list:
     if cvd_on:
         lv = 3 if (f["cold"] or cold10 or drop) else ((2 if (tp["mn"] <= 13 or wintery) else 1) if tp else (3 if wintery else 2))
         add("cvd", lv, "心血管・中風", "冷空氣使氣溫下降、日夜溫差加大" + tt + "，血管收縮、血壓上升；低溫效應會延遲數天，冷空氣過後一週仍要留意。",
-            ["old", "cvd", "dm", "ckd", "solo"], "早晚與清晨出門保暖頭頸手腳；每天量血壓、依醫囑使用藥物；胸痛、單側無力、口齒不清立即打 119。")
+            ["old", "cvd", "dm", "ckd", "solo"], "早晚與清晨出門保暖頭頸手腳；每天量血壓、依醫囑使用藥物；「微笑」臉部不對稱、「舉手」一手垂下、「說你好」講不清楚，任一情形儘快撥 119 並記下發生時間（國健署）。")
     flu_season = m in (11, 12, 1, 2)
     if f["ne"] or f["n"] or f["cold"] or (f["wet"] and cool) or flu_season:
         add("resp", 3 if (wintery or f["cold"] or (tp and tp["mn"] <= 12)) else 2, "呼吸道感染",
             ("現在是流感流行期（約 11 月到隔年 2 月）；" if flu_season else "") + "涼冷天氣使人待在室內、門窗緊閉，流感、新冠、RSV 與肺炎鏈球菌容易傳播；長者重症比例最高。",
-            ["old", "baby", "copd", "ltc", "unvax"], "接種流感、新冠、肺炎鏈球菌疫苗；有症狀戴口罩在家休息；呼吸困難、意識改變儘速就醫。")
+            ["old", "baby", "copd", "ltc", "unvax"], "接種流感、新冠、肺炎鏈球菌疫苗；有症狀戴口罩在家休息；出現呼吸困難、呼吸急促、發紺、血痰、胸痛、意識改變或低血壓等流感危險徵兆，儘速就醫（疾管署）。")
     if (f["ne"] or f["n"]) and f["dry"] and cool:
         add("air", 1, "空氣品質・氣喘 COPD", "東北季風期間中南部位於背風側，風弱時 PM2.5 等汙染物累積；乾冷空氣也會刺激呼吸道。",
             ["copd", "cvd", "old", "baby"], "查看空品 AQI，超過 100 減少戶外活動並戴口罩；依醫囑使用藥物。")
@@ -192,7 +192,7 @@ def risks(d: dict, region: str, data: dict) -> list:
             ["oldhouse", "solo", "old"], "熱水器裝在室外、洗澡時開窗；頭痛頭暈想吐立即開窗離開；不要燒炭取暖。")
     if f["dry"] and cool and (f["ne"] or f["n"] or f["cold"]):
         add("skin", 1, "皮膚乾癢・乾燥型濕疹", "空氣乾燥加上洗熱水澡，皮膚屏障受損；長者皮脂分泌少，小腿、背部容易乾裂發癢，抓破後可能感染。",
-            ["old", "skin", "dm"], "洗澡水不超過 40°C、少用肥皂，洗完 3 分鐘內擦乳液；剪短指甲避免抓破；癢到影響睡眠或出現滲液就醫。")
+            ["old", "skin", "dm"], "洗澡水不超過 40°C、少用肥皂，洗完 3 分鐘內擦乳液；剪短指甲避免抓破。")
     # 過敏性鼻炎・蕁麻疹：日夜溫差大、天氣類型轉換、轉季月份
     swing = (tp["rng"] >= 8) if tp else (cool and f["dry"] and (f["ne"] or f["n"]))
     turn = bool(d.get("_turn"))
@@ -201,23 +201,23 @@ def risks(d: dict, region: str, data: dict) -> list:
         add("allergy", 2 if (swing and (turn or shoulder or (tp and tp["rng"] >= 10))) else 1, "過敏性鼻炎・蕁麻疹",
             "日夜溫差大或天氣型態轉換時，鼻黏膜與皮膚對冷熱刺激敏感，容易打噴嚏、鼻塞，或出現冷熱引起的蕁麻疹。"
             + (f"{tp['st']}日夜溫差約 {js_fixed(tp['rng'])}°C。" if tp else "") + ("這天的天氣類型和前一天不同。" if turn else ""),
-            ["allergy", "urt", "copd", "skin"], "早晚出門戴口罩、圍巾保暖口鼻；依醫囑使用藥物；蕁麻疹合併呼吸困難、嘴唇腫立即就醫。")
+            ["allergy", "urt", "copd", "skin"], "早晚出門戴口罩、圍巾保暖口鼻；依醫囑使用藥物。")
     # 濕疹・汗疹・黴菌：高溫高濕
     if f["season"] in ("su", "me") and (f["wet"] or f["s"] or f["sw"] or f["high"] or f["conv"] or f["season"] == "me"):
         add("eczema", 2 if (f["season"] == "me" or f["wet"]) else 1, "濕疹・汗疹・皮膚黴菌",
             "高溫潮濕讓汗水悶在皮膚皺摺處，容易長汗疹、濕疹，也利於黴菌（股癬、念珠菌）孳生；臥床與穿尿布的長者最常見。",
-            ["bed", "dm", "old", "baby"], "衣物選透氣吸汗材質，汗濕就換；皮膚皺摺處保持乾爽；照顧臥床者每 2 小時翻身並檢查尿布區皮膚；紅疹擴大或化膿就醫。")
+            ["bed", "dm", "old", "baby"], "衣物選透氣吸汗材質，汗濕就換；皮膚皺摺處保持乾爽；照顧臥床者每 2 小時翻身並檢查尿布區皮膚。")
     heat_old = f["season"] in ("su", "me") and (f["high"] or f["s"] or f["conv"] or f["e"] or (f["sw"] and not f["wet"]) or (f["season"] == "su" and f["dry"]))
     if (tp["mx"] >= 30) if tp else heat_old:
         lv = (3 if tp["mx"] >= 34 else 2 if tp["mx"] >= 32 else 1) if tp else (3 if (f["high"] or f["season"] == "su") else 2)
         add("heat", lv, "熱傷害", "高溫潮濕使身體散熱困難" + (f"（{tp['st']}最高 {js_fixed(tp['mx'])}°C）" if tp else "") + "；長者體溫調節較差，在室內不開冷氣也可能中暑。",
-            ["old", "solo", "cvd", "ckd", "outdoor", "baby"], "10–14 時避免戶外活動，少量多次喝水；室內開冷氣或電扇；體溫高、意識不清立即降溫並打 119。")
+            ["old", "solo", "cvd", "ckd", "outdoor", "baby"], "10–14 時避免戶外活動，少量多次喝水；室內開冷氣或電扇；不舒服時先移到陰涼處、喝加少許鹽的冷開水；體溫持續上升、呼吸困難或意識持續不清，立即就醫或撥 119（國健署）。")
     if f["wet"] and (f["sw"] or f["front"] or f["ty"] or f["season"] in ("me", "su")):
         add("flood", 3 if f["ty"] else 2, "豪雨後感染", "豪雨淹水後，汙水與土壤散播鉤端螺旋體、類鼻疽菌；傷口接觸汙水易感染。",
             ["dm", "ckd", "imm", "outdoor"], "清理時穿雨鞋、戴手套口罩；有傷口避免接觸汙水，發燒就醫並告知接觸史。")
     if 6 <= m <= 11 and (f["wet"] or f["s"] or f["sw"] or f["season"] == "su"):
         add("dengue", 2 if 8 <= m <= 10 else 1, "登革熱", "雨後積水容器孳生病媒蚊，氣溫高時傳播快；長者與二次感染者重症風險較高。",
-            ["old", "cvd", "dm"], "清除積水容器、穿淺色長袖、用防蚊液；出現腹痛、出血等警訊立即就醫。")
+            ["old", "cvd", "dm"], "清除積水容器、穿淺色長袖、用防蚊液；出現腹部疼痛及壓痛、持續性嘔吐、黏膜出血、嗜睡或躁動不安等重症警示徵象，儘速就醫並告知旅遊史（疾管署）。")
     if f["ty"]:
         add("typhoon", 3, "颱風外傷・停電", "強風豪雨造成外傷、停電與交通中斷，維生器材與洗腎、透析治療可能受影響。",
             ["vent", "ckd", "mob", "ltc"], "備妥 3 天份藥物、行動電源與備援電源；依通知提前撤離。")
