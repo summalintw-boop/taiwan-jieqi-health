@@ -27,6 +27,7 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 header.top h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,4vw,36px);margin:0;letter-spacing:.04em}
 header.top p{margin:2px 0 0;color:var(--muted);font-size:14px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.v2link{font-size:14px;font-weight:700;color:var(--accent);margin-right:8px}
 .controls label{font-size:13px;color:var(--muted)}
 select{font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
 button{font:inherit;cursor:pointer;color:var(--ink)}
@@ -184,6 +185,7 @@ footer a{color:var(--accent)}
       <p>彙整二十四節氣、NCDR AI 天氣類型、疾管署監測與氣象署資料，提醒高齡照護</p>
     </div>
     <div class="controls">
+      <a class="v2link" href="v2/">今日健康提醒（簡易版）→</a>
       <label for="region">地區</label>
       <select id="region">
         <option value="北部">北部</option>

@@ -1,0 +1,367 @@
+<title>今日健康提醒</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 版型：單欄、大字、先給「今天要做什麼」，再給 7 天、群體監測與服務；所有風險同時有圖示＋文字等級 */
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --ink:#111a22; --muted:#4a5866; --line:#cfd8e0; --soft:#e9eef2;
+  --accent:#1f5fa8; --accent-ink:#ffffff; --accent-soft:#e3edf8;
+  --lv1:#2e7d5b; --lv2:#9a5b00; --lv3:#b3261e; --lv1-bg:#e3f2ea; --lv2-bg:#fdf0dc; --lv3-bg:#fbe4e2;
+  --danger:#b3261e; --danger-bg:#fdecea;
+  --f:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  font-size:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141a; --surface:#16202a; --ink:#eef3f7; --muted:#a8b5c1; --line:#2c3a47; --soft:#1d2934;
+  --accent:#7fb2ee; --accent-ink:#0e141a; --accent-soft:#1c2f45;
+  --lv1:#6fd3a3; --lv2:#f2b45a; --lv3:#ff8a80; --lv1-bg:#173326; --lv2-bg:#3a2a12; --lv3-bg:#3f1c1a;
+  --danger:#ff8a80; --danger-bg:#3f1c1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141a; --surface:#16202a; --ink:#eef3f7; --muted:#a8b5c1; --line:#2c3a47; --soft:#1d2934;
+  --accent:#7fb2ee; --accent-ink:#0e141a; --accent-soft:#1c2f45;
+  --lv1:#6fd3a3; --lv2:#f2b45a; --lv3:#ff8a80; --lv1-bg:#173326; --lv2-bg:#3a2a12; --lv3-bg:#3f1c1a;
+  --danger:#ff8a80; --danger-bg:#3f1c1a; color-scheme:dark}
+/* 高對比：黑底白字黃強調 */
+:root[data-contrast="high"]{
+  --bg:#000; --surface:#000; --ink:#fff; --muted:#fff; --line:#fff; --soft:#111;
+  --accent:#ffd400; --accent-ink:#000; --accent-soft:#222;
+  --lv1:#7dffb0; --lv2:#ffd400; --lv3:#ff6b6b; --lv1-bg:#000; --lv2-bg:#000; --lv3-bg:#000;
+  --danger:#ff6b6b; --danger-bg:#000; color-scheme:dark}
+:root[data-size="lg"]{font-size:22px}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:1rem;line-height:1.7;margin:0}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:var(--ink)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sub{font-size:.8rem;color:var(--muted)}
+h2{font-size:1.25rem;margin:2rem 0 .5rem;font-weight:900}
+
+/* 頂部 */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.brand{font-size:.85rem;color:var(--muted)}
+.brand b{color:var(--ink);font-size:1.15rem;font-weight:900;margin-right:6px}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+.tbtn{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:.8rem;cursor:pointer}
+.tbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.ctl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:10px;margin:14px 0 10px}
+@media (max-width:620px){.ctl{grid-template-columns:minmax(0,1fr)}}
+.ctl label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:2px}
+select{width:100%;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:var(--surface)}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:8px 4px;cursor:pointer;font-weight:700}
+.seg button+button{border-left:2px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+/* 今日 */
+.hero{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:18px 20px}
+.hero-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px}
+.date{font-size:1.5rem;font-weight:900}
+.place{font-size:.9rem;color:var(--muted)}
+.wx{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin:8px 0 4px}
+.temp{font-family:var(--mono);font-size:2.4rem;font-weight:500;line-height:1.1;white-space:nowrap}
+.wxt{font-size:1.05rem;font-weight:700}
+.term{font-size:.8rem;color:var(--muted);margin-top:6px}
+.read{margin-top:12px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:6px 14px;font-weight:700;cursor:pointer}
+
+/* 今天要注意 */
+.items{display:flex;flex-direction:column;gap:10px}
+.it{background:var(--surface);border:2px solid var(--line);border-left-width:8px;border-radius:12px;padding:12px 14px}
+.it.l3{border-left-color:var(--lv3)}.it.l2{border-left-color:var(--lv2)}.it.l1{border-left-color:var(--lv1)}
+.it-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.it-h b{font-size:1.1rem}
+.lv{font-size:.75rem;font-weight:900;padding:1px 10px;border-radius:999px;white-space:nowrap;border:2px solid currentColor}
+.lv.l3{color:var(--lv3);background:var(--lv3-bg)}.lv.l2{color:var(--lv2);background:var(--lv2-bg)}.lv.l1{color:var(--lv1);background:var(--lv1-bg)}
+.why{margin:4px 0 6px;color:var(--muted);font-size:.9rem}
+.do{font-size:1rem}
+.do b{color:var(--accent)}
+.who{font-size:.8rem;color:var(--muted);margin-top:4px}
+.check{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.check label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.check input{width:1.3em;height:1.3em;margin-top:.2em;flex:none}
+.check input:checked+span{text-decoration:line-through;color:var(--muted)}
+
+/* 就醫 */
+.danger{border:3px solid var(--danger);background:var(--danger-bg);border-radius:14px;padding:14px 16px;margin-top:14px}
+.danger h3{margin:0 0 6px;font-size:1.1rem;color:var(--danger)}
+.danger ul{margin:0;padding-left:1.2em}
+.danger li+li{margin-top:4px}
+.call{display:inline-block;font-family:var(--mono);font-weight:500;font-size:1.3rem;color:var(--danger);user-select:all}
+
+/* 7 天 */
+.days{display:flex;flex-direction:column;gap:8px}
+details.day{background:var(--surface);border:2px solid var(--line);border-radius:12px}
+details.day[open]{border-color:var(--accent)}
+details.day summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:5.2em 4.6em minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px}
+details.day summary::-webkit-details-marker{display:none}
+.dd{font-weight:900}
+.dd small{display:block;font-weight:400;font-size:.75rem;color:var(--muted)}
+.dt{font-family:var(--mono);font-size:.9rem;white-space:nowrap}
+.dr{min-width:0}
+.dr .rs{font-weight:700}
+.dr .reason{display:block;font-size:.85rem;color:var(--muted)}
+.chev{color:var(--muted);font-size:.8rem}
+details.day[open] .chev{transform:rotate(180deg)}
+@media (max-width:560px){details.day summary{grid-template-columns:4.4em minmax(0,1fr) auto}.dt{grid-column:2;grid-row:1}.dr{grid-column:1/-1;grid-row:2}.chev{grid-column:3;grid-row:1}}
+.dbody{padding:0 14px 14px;border-top:1px dashed var(--line);font-size:.9rem}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 14px;margin:10px 0}
+.kv div span{display:block;font-size:.75rem;color:var(--muted)}
+.kv div b{font-family:var(--mono);font-weight:500}
+.src{font-size:.75rem;color:var(--muted);margin-top:8px}
+
+/* 群體監測 */
+.note{background:var(--soft);border-radius:10px;padding:10px 14px;font-size:.85rem}
+.mon{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:10px}
+.mc{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.mc b{font-size:1rem}
+.mc .chg{font-size:1.05rem;font-weight:700;margin:2px 0}
+.mc .sub{line-height:1.5}
+
+/* 服務 */
+.svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.card h3{margin:0 0 6px;font-size:1.05rem}
+.bp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0}
+.bp label{font-size:.75rem;color:var(--muted)}
+.bp input{width:100%;box-sizing:border-box;padding:8px;border:2px solid var(--line);border-radius:8px;background:var(--surface);font-family:var(--mono)}
+.btn{border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:6px 14px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.bplist{list-style:none;padding:0;margin:8px 0 0;font-size:.85rem}
+.bplist li{display:flex;justify-content:space-between;gap:8px;border-top:1px dashed var(--line);padding:4px 0;font-variant-numeric:tabular-nums}
+.links{margin:0;padding-left:1.1em}
+.links li+li{margin-top:6px}
+.msg{font-size:.85rem;margin-top:6px}
+
+footer{margin-top:2.5rem;padding-top:12px;border-top:2px solid var(--line);font-size:.75rem;color:var(--muted)}
+footer ul{padding-left:1.2em;margin:6px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><b>今日健康提醒</b>臺灣節令健康曆・簡易版</div>
+    <div class="tools" role="group" aria-label="顯示設定">
+      <button class="tbtn" id="t-size" aria-pressed="false">大字</button>
+      <button class="tbtn" id="t-contrast" aria-pressed="false">高對比</button>
+      <a class="tbtn" href="../" style="text-decoration:none;color:inherit">完整版</a>
+    </div>
+  </div>
+
+  <div class="ctl">
+    <div><label for="region">所在地區</label>
+      <select id="region"><option value="北部">北部（臺北）</option><option value="中部">中部（臺中）</option><option value="南部">南部（高雄）</option><option value="東部">東部（宜蘭）</option></select></div>
+    <div><label id="role-l">我是</label>
+      <div class="seg" role="group" aria-labelledby="role-l">
+        <button data-role="public" aria-pressed="true">一般民眾</button>
+        <button data-role="elder" aria-pressed="false">高齡者</button>
+        <button data-role="carer" aria-pressed="false">照顧者</button>
+      </div></div>
+  </div>
+
+  <section class="hero" aria-live="polite">
+    <div class="hero-h"><div class="date" id="h-date">—</div><div class="place" id="h-place"></div></div>
+    <div class="wx"><div class="temp" id="h-temp">--°C</div><div><div class="wxt" id="h-wx">讀取中…</div><div class="sub" id="h-wxsub"></div></div></div>
+    <div class="term" id="h-term"></div>
+    <button class="read" id="read" hidden>🔊 朗讀今天的提醒</button>
+  </section>
+
+  <h2 id="today-h">今天要注意</h2>
+  <div class="items" id="items"></div>
+  <div class="danger" id="danger"></div>
+
+  <h2>未來 7 天</h2>
+  <p class="sub" style="margin-top:-4px">點一下日期看溫度數值、提醒對象與資料依據。</p>
+  <div class="days" id="days"></div>
+
+  <h2>群體監測：最近的就診趨勢</h2>
+  <div class="note"><b>這是整個地區的就診人次變化，不是您個人生病的機率。</b>資料來自疾管署開放資料「健保門診人次」，每週更新一次，用來了解疾病流行的方向。</div>
+  <div class="mon" id="mon"></div>
+
+  <h2>健康服務</h2>
+  <div class="svc">
+    <div class="card">
+      <h3>🩺 血壓紀錄</h3>
+      <form id="bp-form" class="bp" autocomplete="off">
+        <div><label for="bp-s">收縮壓</label><input id="bp-s" inputmode="numeric" pattern="[0-9]*" placeholder="120" required></div>
+        <div><label for="bp-d">舒張壓</label><input id="bp-d" inputmode="numeric" pattern="[0-9]*" placeholder="80" required></div>
+        <div><label for="bp-p">脈搏</label><input id="bp-p" inputmode="numeric" pattern="[0-9]*" placeholder="72"></div>
+      </form>
+      <button class="btn" type="submit" form="bp-form">記錄</button>
+      <div class="msg" id="bp-msg" role="status"></div>
+      <ul class="bplist" id="bp-list"></ul>
+      <div class="sub">只存在這支手機或電腦的瀏覽器，不會上傳。數值僅供自我追蹤，判讀請依醫師建議。</div>
+      <div id="bp-clear-wrap" style="margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <h3>🏥 找醫療院所</h3>
+      <ul class="links">
+        <li><a href="https://info.nhi.gov.tw/INAE1000/INAE1000S01" target="_blank" rel="noopener">健保特約醫療院所查詢</a>（衛福部中央健康保險署）</li>
+        <li>手機可用「全民健保行動快易通」App 查附近診所與藥局</li>
+      </ul>
+      <h3 style="margin-top:12px">📞 就醫與諮詢電話</h3>
+      <ul class="links">
+        <li><span class="call" style="font-size:1.05rem;color:var(--ink)">119</span> 緊急救護（胸痛、中風、意識不清）</li>
+        <li><span class="call" style="font-size:1.05rem;color:var(--ink)">1922</span> 疾管署防疫專線</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>ℹ️ 健康建議和就醫的差別</h3>
+      <p style="margin:0;font-size:.9rem"><b>健康建議</b>：保暖、補水、戴口罩等，自己在家就能做的事。</p>
+      <p style="margin:6px 0 0;font-size:.9rem"><b style="color:var(--danger)">需要就醫</b>：出現紅框列出的症狀時，不要等待，請就醫或撥 119。</p>
+    </div>
+  </div>
+
+  <footer>
+    <div>資料來源與更新</div>
+    <ul>
+      <li>天氣類型：國家災害防救科技中心 AI 天氣判識日曆（實驗性產品）；每日溫度：Open-Meteo 模式資料。兩者每天 06:10、14:10 更新，天氣以中央氣象署為準。</li>
+      <li>群體監測：疾病管制署開放資料（健保門診人次），每週三、五更新。</li>
+      <li>健康提醒依天氣、溫度與月份規則產生，由 Summalin 彙整現有公開資料製作，內容待公共衛生及醫療專家審閱。</li>
+      <li id="f-upd"></li>
+    </ul>
+    本頁僅供健康資訊參考，不能取代醫療診斷。急症請撥 119。
+  </footer>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD='日一二三四五六';
+let DATA=null, REGION='北部', ROLE='public';
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+
+/*@@RULES@@*/
+
+// ===== 依身分的建議 =====
+const ELDER={cvd:'早上起床先坐一下再下床；出門戴帽子、圍巾；每天量血壓，依醫囑使用藥物。',resp:'人多的地方戴口罩、勤洗手；還沒打流感疫苗，可以去打。',air:'空氣不好時少出門，出門戴口罩。',wetcold:'下雨路滑，出門穿防滑鞋，洗澡時小心地板。',co:'洗澡時打開窗戶，不要在屋內燒炭取暖。',skin:'洗澡水不要太燙，洗完擦乳液，不要抓破皮膚。',allergy:'早晚出門戴口罩，保暖口鼻；依醫囑使用藥物。',eczema:'流汗就換衣服，皮膚保持乾爽。',heat:'中午不要出門；每隔一段時間喝水；家裡開冷氣或電扇。',flood:'不要碰淹水的髒水，有傷口要包好。',dengue:'倒掉家裡積水，穿長袖、擦防蚊液。',typhoon:'準備 3 天份的藥和手電筒，聽從撤離通知。',gi:'食物要煮熟，剩菜冰起來，飯前便後洗手。',ev:'抱小孩前後要洗手。',calm:'維持規律作息，依醫囑使用藥物。'};
+const CARER={cvd:['幫長輩量血壓並記錄','提醒出門前戴帽子、圍巾','讓長輩知道胸痛、單側無力要打 119'],resp:['確認長輩已接種流感、新冠疫苗','長輩發燒咳嗽時，幫忙戴口罩、減少訪客'],air:['查看空氣品質，空氣差時改在室內活動'],wetcold:['檢查浴室防滑墊和扶手','下雨天陪同外出，或延後外出'],co:['確認熱水器裝在室外、通風良好','提醒洗澡時開窗'],skin:['洗澡後幫長輩擦乳液，留意有沒有抓傷'],allergy:['早晚外出提醒戴口罩、圍巾'],eczema:['臥床長輩每 2 小時翻身，檢查皮膚皺摺與尿布區'],heat:['確認長輩家裡的室溫，必要時開冷氣','提醒長輩隔一段時間喝水'],flood:['清理環境時讓長輩避開汙水，傷口要包紮'],dengue:['巡一遍家裡的積水容器並倒掉'],typhoon:['確認藥品、手電筒、行動電源','使用維生器材的長輩準備備援電源'],gi:['檢查冰箱剩菜，不給長輩吃放太久的食物'],ev:['家中有幼兒時，大人照顧前後先洗手'],calm:['打電話問候長輩近況']};
+const DANGER={cvd:['胸痛、單側手腳無力、口齒不清、臉歪嘴斜','立即撥 119'],heat:['體溫很高、意識不清、不再流汗','立即降溫並撥 119'],resp:['呼吸困難、嘴唇發紫、意識改變','儘速就醫'],co:['頭痛、頭暈、想吐，同住家人也不舒服','立刻開窗離開，撥 119'],allergy:['蕁麻疹合併呼吸困難、嘴唇或眼皮腫起','立即撥 119'],dengue:['發燒後腹痛、嘔吐、牙齦或皮膚出血','儘速就醫'],gi:['腹瀉嘔吐到喝不下水、尿量很少','儘速就醫'],eczema:['紅疹擴大、化膿或發燒','就醫'],skin:['皮膚破皮紅腫、化膿','就醫'],flood:['接觸汙水後發燒、肌肉痛','就醫並告知接觸史'],wetcold:['跌倒後無法起身、頭部撞擊','撥 119']};
+const LVT=['','○ 需留意','● 風險中','▲ 風險高'];
+
+// ===== 原因說明 =====
+function reasonOf(d){
+  const t=tempOf(d.date,REGION), r=[], f=parseWx(d);
+  if(t){
+    if(t.dmn<=-3)r.push(`最低溫比前一天低 ${(-t.dmn).toFixed(0)}°C，注意保暖`);
+    else if(t.mn<=12)r.push(`最低 ${t.mn.toFixed(0)}°C 偏冷，注意保暖`);
+    if(t.mx>=32)r.push(`最高 ${t.mx.toFixed(0)}°C，注意補水防中暑`);
+    if(t.rng>=8)r.push(`日夜溫差 ${t.rng.toFixed(0)}°C，早晚加衣`);
+  }
+  if(d.rain)r.push(f.ne?'東北季風帶來降雨，濕冷路滑':'有雨，路面濕滑');
+  if([11,12,1,2].includes(f.m))r.push('流感流行期');
+  if(!r.length)r.push('天氣變化不大');
+  return r.slice(0,2).join('；');
+}
+const md=s=>`${+s.slice(5,7)}/${+s.slice(8)}`;
+const wdOf=s=>WD[new Date(s+'T00:00:00Z').getUTCDay()];
+
+// ===== 今日 =====
+function todayData(){const ty=todayYMD();return DATA&&DATA.ncdr&&DATA.ncdr.days.find(x=>x.date===ty);}
+function renderHero(){
+  const ty=todayYMD(), tm=termAt(ty), s=tw(tm.st), dayN=Math.floor(tm.jd-tm.st)+1, nx=T[(tm.i+1)%24], nd=tw(solve(((tm.i+1)%24)*15,tm.st+15.2));
+  $('h-date').textContent=`${md(ty)}（星期${wdOf(ty)}）`;
+  $('h-place').textContent=`${REGION}・${STN[REGION][0]}`;
+  $('h-term').textContent=`節氣：${T[tm.i].n} 第 ${dayN} 天，下個節氣 ${nx.n}（${nd.m}/${nd.d}）`;
+  const d=todayData(), t=tempOf(ty,REGION);
+  $('h-temp').textContent=t?`${t.mn.toFixed(0)}–${t.mx.toFixed(0)}°C`:'--°C';
+  $('h-wx').textContent=d?`${d.type}${d.rain?'・有雨':''}`:'沒有今天的天氣資料';
+  $('h-wxsub').textContent=d?reasonOf(d):'';
+}
+function renderItems(){
+  const d=todayData(); const el=$('items');
+  $('today-h').textContent=ROLE==='carer'?'今天要幫長輩注意什麼':ROLE==='elder'?'今天請您注意':'今天要注意';
+  if(!d){el.innerHTML='<div class="sub">沒有今天的資料。</div>';$('danger').innerHTML='';return;}
+  const rs=risks(d,REGION).slice(0,4), done=store.get('v2-done-'+todayYMD(),{});
+  el.innerHTML=rs.map(r=>{
+    let body;
+    if(ROLE==='carer') body=`<ul class="check">${(CARER[r.k]||[r.act]).map((c,i)=>{const id=`ck-${r.k}-${i}`;return `<li><label for="${id}"><input type="checkbox" id="${id}" data-ck="${r.k}-${i}" ${done[r.k+'-'+i]?'checked':''}><span>${c}</span></label></li>`;}).join('')}</ul>`;
+    else if(ROLE==='elder') body=`<div class="do">${ELDER[r.k]||r.act}</div>`;
+    else body=`<div class="do"><b>建議：</b>${r.act}</div><div class="who">需要特別注意：${r.groups.join('、')}</div>`;
+    return `<div class="it l${r.lv}"><div class="it-h"><span aria-hidden="true">${ICON[r.k]||''}</span><b>${r.name}</b><span class="lv l${r.lv}">${LVT[r.lv]}</span></div><div class="why">${r.why}</div>${body}</div>`;}).join('');
+  el.querySelectorAll('input[data-ck]').forEach(c=>c.addEventListener('change',()=>{const o=store.get('v2-done-'+todayYMD(),{});o[c.dataset.ck]=c.checked;store.set('v2-done-'+todayYMD(),o);}));
+  const ds=rs.map(r=>DANGER[r.k]&&[r.k,DANGER[r.k]]).filter(Boolean);
+  $('danger').innerHTML=`<h3>⚠️ 出現這些情況，請就醫或撥 119</h3><ul>${ds.map(([k,[sign,act]])=>`<li>${ICON[k]||''} ${sign} → <b>${act}</b></li>`).join('')}<li>任何緊急狀況 → <span class="call">119</span></li></ul>`;
+}
+// ===== 7 天 =====
+function renderDays(){
+  const ty=todayYMD(), days=((DATA&&DATA.ncdr&&DATA.ncdr.days)||[]).filter(d=>d.date>=ty).slice(0,7);
+  $('days').innerHTML=days.length?days.map((d,i)=>{
+    const t=tempOf(d.date,REGION), rs=risks(d,REGION), top=rs.filter(r=>r.lv>=2).slice(0,2), kind=d.kind==='obs'?'已判識':i===0?'今日推估':'AI 推估';
+    return `<details class="day"${i===0?' open':''}><summary>
+      <span class="dd">${i===0?'今天':md(d.date)}<small>${i===0?md(d.date)+' ':''}星期${wdOf(d.date)}</small></span>
+      <span class="dt">${t?`${t.mn.toFixed(0)}–${t.mx.toFixed(0)}°`:'--'}</span>
+      <span class="dr"><span class="rs">${top.length?top.map(r=>`${ICON[r.k]||''}${r.name.split('・')[0]}（${LVT[r.lv].slice(2)}）`).join('、'):'○ 無中高風險'}</span><span class="reason">${reasonOf(d)}</span></span>
+      <span class="chev" aria-hidden="true">▼</span></summary>
+      <div class="dbody">
+        <div class="kv">
+          <div><span>天氣類型</span><b>${esc(d.season)}・${esc(d.type)}${d.rain?'・有雨':''}</b></div>
+          ${t?`<div><span>最低／最高溫</span><b>${t.mn.toFixed(1)}／${t.mx.toFixed(1)}°C</b></div><div><span>日夜溫差</span><b>${t.rng.toFixed(1)}°C</b></div><div><span>最低溫比前一天</span><b>${t.dmn>0?'+':''}${t.dmn.toFixed(1)}°C</b></div>`:''}
+        </div>
+        <div><b>提醒對象：</b>${[...new Set(rs.flatMap(r=>r.groups))].slice(0,8).join('、')}</div>
+        <div style="margin-top:4px"><b>需要注意：</b>${rs.map(r=>`${ICON[r.k]||''}${r.name}（${LVT[r.lv].slice(2)}）`).join('、')}</div>
+        <div class="src">資料依據：NCDR AI 天氣判識日曆（${kind}）；溫度 Open-Meteo（${STN[REGION][0]}，模式${d.kind==='obs'?'分析':'預報'}）；疾病對應為本平台依天氣、溫度、月份的規則，非個人診斷。</div>
+      </div></details>`;}).join(''):'<div class="sub">沒有未來天氣資料。</div>';
+}
+// ===== 群體監測 =====
+function renderMon(){
+  if(!DATA||!DATA.cdc){$('mon').innerHTML='<div class="sub">沒有疾管署資料。</div>';return;}
+  const up=(DATA.updated&&DATA.updated.cdc)||DATA.generated, scope={北部:'北部 6 縣市',中部:'中部 5 縣市',南部:'南部 6 縣市',東部:'東部 3 縣市'}[REGION];
+  $('mon').innerHTML=CDCK.map(([k,name])=>{
+    const R=DATA.cdc[k]&&DATA.cdc[k].regions[REGION]; if(!R)return'';
+    const w=R.weeks, L=w[w.length-1], P=w[w.length-2], c=P&&P.opd?(L.opd-P.opd)/P.opd*100:0;
+    const dir=Math.abs(c)<5?'→ 和上週差不多':c>0?`↑ 比上週增加 ${c.toFixed(0)}%`:`↓ 比上週減少 ${(-c).toFixed(0)}%`;
+    return `<div class="mc"><b>${name}</b><div class="chg">${dir}</div><div class="sub">${L.y} 年第 ${L.w} 週・${scope}健保門診 ${L.opd.toLocaleString('zh-TW')} 人次<br>資料抓取 ${String(up).replace('T',' ').slice(0,16)}</div></div>`;}).join('');
+}
+// ===== 血壓 =====
+function bpStatus(s,d){if(s>=180||d>=120)return['⚠️ 非常高，請立即就醫或撥 119','var(--danger)'];if(s>=140||d>=90)return['偏高，請持續記錄並告訴您的醫師','var(--lv2)'];if(s<90||d<60)return['偏低，若頭暈不適請就醫','var(--lv2)'];return['在一般範圍內','var(--lv1)'];}
+function renderBP(){
+  const L=store.get('v2-bp',[]);
+  $('bp-list').innerHTML=L.slice(-7).reverse().map(x=>{const[st,col]=bpStatus(x.s,x.d);return `<li><span>${x.t}</span><span><b>${x.s}/${x.d}</b>${x.p?`・脈搏 ${x.p}`:''}</span><span style="color:${col}">${st.split('，')[0]}</span></li>`;}).join('');
+  $('bp-clear-wrap').innerHTML=L.length?'<button class="btn ghost" type="button" id="bp-clear">清除全部紀錄</button>':'';
+  const b=$('bp-clear'); if(b)b.onclick=()=>{if(b.dataset.c){store.set('v2-bp',[]);$('bp-msg').textContent='已清除。';renderBP();}else{b.dataset.c='1';b.textContent='再按一次確定清除';}};
+}
+$('bp-form').addEventListener('submit',e=>{e.preventDefault();
+  const s=+$('bp-s').value, d=+$('bp-d').value, p=+$('bp-p').value||0;
+  if(!(s>=50&&s<=260&&d>=30&&d<=180)){$('bp-msg').textContent='請輸入正確的數字，例如 120 和 80。';return;}
+  const n=new Date(), t=`${n.getMonth()+1}/${n.getDate()} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  const L=store.get('v2-bp',[]); L.push({t,s,d,p}); store.set('v2-bp',L.slice(-60));
+  const[st,col]=bpStatus(s,d); $('bp-msg').innerHTML=`已記錄 ${s}/${d}：<b style="color:${col}">${st}</b>`;
+  e.target.reset(); renderBP();});
+
+// ===== 朗讀 =====
+function speakText(){
+  const d=todayData(), t=tempOf(todayYMD(),REGION), rs=d?risks(d,REGION).slice(0,3):[];
+  let s=`今天${$('h-date').textContent}，${REGION}，`+(t?`氣溫${t.mn.toFixed(0)}到${t.mx.toFixed(0)}度。`:'')+(d?reasonOf(d)+'。':'');
+  rs.forEach(r=>{s+=`${r.name.replace('・','、')}，${LVT[r.lv].slice(2)}。`+(ROLE==='elder'?(ELDER[r.k]||r.act):ROLE==='carer'?(CARER[r.k]||[r.act]).join('；'):r.act)+'。';});
+  return s+'如果胸痛、呼吸困難或意識不清，請撥一一九。';
+}
+if('speechSynthesis' in window){$('read').hidden=false;
+  $('read').addEventListener('click',()=>{const ss=window.speechSynthesis;if(ss.speaking){ss.cancel();$('read').textContent='🔊 朗讀今天的提醒';return;}
+    const u=new SpeechSynthesisUtterance(speakText());u.lang='zh-TW';u.rate=.9;u.onend=()=>{$('read').textContent='🔊 朗讀今天的提醒';};
+    ss.speak(u);$('read').textContent='⏹ 停止朗讀';});}
+
+// ===== 設定 =====
+function applyPrefs(){
+  const sz=store.get('v2-size',false), hc=store.get('v2-contrast',false);
+  document.documentElement.dataset.size=sz?'lg':''; $('t-size').setAttribute('aria-pressed',sz);
+  if(hc)document.documentElement.dataset.contrast='high';else delete document.documentElement.dataset.contrast; $('t-contrast').setAttribute('aria-pressed',hc);
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.role===ROLE));
+  $('region').value=REGION;
+}
+$('t-size').onclick=()=>{store.set('v2-size',!store.get('v2-size',false));applyPrefs();};
+$('t-contrast').onclick=()=>{store.set('v2-contrast',!store.get('v2-contrast',false));applyPrefs();};
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{ROLE=b.dataset.role;store.set('v2-role',ROLE);applyPrefs();renderItems();});
+$('region').onchange=e=>{REGION=e.target.value;store.set('v2-region',REGION);renderAll();};
+REGION=store.get('v2-region','北部'); if(!STN[REGION])REGION='北部'; ROLE=store.get('v2-role','public');
+
+function renderAll(){renderHero();renderItems();renderDays();renderMon();
+  const up=(DATA&&DATA.updated)||{}; $('f-upd').textContent=`本頁資料：天氣 ${String(up.ncdr||'—').replace('T',' ').slice(0,16)}・溫度 ${String(up.temp||'—').replace('T',' ').slice(0,16)}・疾管署 ${String(up.cdc||'—').replace('T',' ').slice(0,16)}`;}
+applyPrefs(); renderHero(); renderBP();
+fetch('../data.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
+  DATA=j; if(j.ncdr&&j.ncdr.days){j.ncdr.days.forEach((d,i)=>{const p=j.ncdr.days[i-1];d._turn=!!(p&&p.type!==d.type);});}
+  renderAll();
+}).catch(()=>{$('h-wx').textContent='讀不到資料，請稍後再試';});
+})();
+</script>
