@@ -35,7 +35,10 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 header.top h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,4vw,36px);margin:0;letter-spacing:.04em}
 header.top p{margin:2px 0 0;color:var(--muted);font-size:14px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.v2link{font-size:14px;font-weight:700;color:var(--accent);margin-right:8px}
+.vnav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;font-size:14px}
+.vnav a{display:inline-block;padding:4px 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);text-decoration:none;font-weight:700}
+.vnav a:hover{border-color:var(--accent)}
+.vnav a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#fff)}
 .controls label{font-size:13px;color:var(--muted)}
 select{font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
 button{font:inherit;cursor:pointer;color:var(--ink)}
@@ -187,13 +190,13 @@ footer a{color:var(--accent)}
 </style>
 
 <div class="wrap">
+  <nav class="vnav" aria-label="切換版本"><a href="./" aria-current="page">完整版</a><a href="v2/">今日健康提醒</a><a href="v3/">節令曆（依節氣）</a></nav>
   <header class="top">
     <div>
       <h1>臺灣節令健康曆</h1>
       <p>彙整二十四節氣、NCDR AI 天氣類型、疾管署監測與氣象署資料，提醒高齡照護</p>
     </div>
     <div class="controls">
-      <a class="v2link" href="v2/">今日健康提醒（簡易版）→</a>
       <label for="region">地區</label>
       <select id="region">
         <option value="北部">北部</option>

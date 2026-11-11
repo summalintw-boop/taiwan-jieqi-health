@@ -38,6 +38,10 @@ h2{font-family:var(--fd);font-size:1.3rem;margin:2rem 0 .3rem;letter-spacing:.03
 .tbtn{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:.8rem;cursor:pointer;text-decoration:none;color:var(--ink)}
 .tbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
 
+.vnav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;font-size:14px}
+.vnav a{display:inline-block;padding:4px 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);text-decoration:none;font-weight:700}
+.vnav a:hover{border-color:var(--accent)}
+.vnav a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#fff)}
 /* 現在的節氣 */
 .now{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:0;background:var(--surface);border:2px solid var(--line);border-radius:14px;margin-top:14px;overflow:hidden}
 .now>div{padding:16px 18px;min-width:0}
@@ -132,14 +136,13 @@ footer ul{padding-left:1.2em;margin:6px 0}
 </style>
 
 <div class="wrap">
+  <nav class="vnav" aria-label="切換版本"><a href="../">完整版</a><a href="../v2/">今日健康提醒</a><a href="../v3/" aria-current="page">節令曆（依節氣）</a></nav>
   <div class="top">
     <div><h1>節令健康曆</h1><div class="sub">以節氣與「候」（約 5 天）排列的健康提醒・第三版</div></div>
     <div class="tools">
       <label for="region" class="sub">地區</label>
       <select id="region"><option value="北部">北部（臺北）</option><option value="中部">中部（臺中）</option><option value="南部">南部（高雄）</option><option value="東部">東部（宜蘭）</option></select>
       <button class="tbtn" id="t-size" aria-pressed="false">大字</button>
-      <a class="tbtn" href="../v2/">今日健康提醒</a>
-      <a class="tbtn" href="../">完整版</a>
     </div>
   </div>
 

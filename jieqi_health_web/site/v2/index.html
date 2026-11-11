@@ -47,6 +47,11 @@ button,select,input{font:inherit;color:var(--ink)}
 h2{font-size:1.25rem;margin:2rem 0 .5rem;font-weight:900}
 
 /* 頂部 */
+.vnav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;font-size:14px}
+.vnav a{display:inline-block;padding:4px 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);text-decoration:none;font-weight:700}
+.vnav a:hover{border-color:var(--accent)}
+.vnav a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#fff)}
+
 .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
 .brand{font-size:.85rem;color:var(--muted)}
 .brand b{color:var(--ink);font-size:1.15rem;font-weight:900;margin-right:6px}
@@ -180,12 +185,12 @@ footer ul{padding-left:1.2em;margin:6px 0}
 </style>
 
 <div class="wrap">
+  <nav class="vnav" aria-label="切換版本"><a href="../">完整版</a><a href="../v2/" aria-current="page">今日健康提醒</a><a href="../v3/">節令曆（依節氣）</a></nav>
   <div class="top">
     <div class="brand"><b>今日健康提醒</b>臺灣節令健康曆・簡易版</div>
     <div class="tools" role="group" aria-label="顯示設定">
       <button class="tbtn" id="t-size" aria-pressed="false">大字</button>
       <button class="tbtn" id="t-contrast" aria-pressed="false">高對比</button>
-      <a class="tbtn" href="../" style="text-decoration:none;color:inherit">完整版</a>
     </div>
   </div>
 
