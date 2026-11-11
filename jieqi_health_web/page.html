@@ -152,7 +152,7 @@ footer a{color:var(--accent)}
   <header class="top">
     <div>
       <h1>臺灣節令健康曆</h1>
-      <p>二十四節氣 × NCDR AI 天氣類型 × 疾管署監測 × 高齡照護建議</p>
+      <p>彙整二十四節氣、NCDR AI 天氣類型、疾管署監測與氣象署資料，提醒高齡照護</p>
     </div>
     <div class="controls">
       <label for="region">地區</label>
@@ -247,9 +247,8 @@ footer a{color:var(--accent)}
 (function(){
 // ===== 機關資訊：上線前請修改 =====
 const SITE={
-  agency:'（機關名稱）',
-  unit:'（承辦單位）',
-  contact:'（聯絡電話／電子郵件）',
+  maker:'Summalin',
+  purpose:'彙整現有公開資料呈現的臺灣國人節令健康曆，用於提醒高齡照護。',
   review:'草稿：內容待公共衛生及醫療專家審閱',
 };
 
@@ -550,7 +549,7 @@ function renderSeason(){
 const fmtT=s=>s?String(s).replace('T',' ').slice(0,16):'—';
 function renderFooter(){
   const up=(DATA&&(DATA.updated||{ncdr:DATA.generated,cdc:DATA.generated,climate:DATA.generated}))||{};
-  $('org').innerHTML=`<div>發布機關：<b>${esc(SITE.agency)}</b></div><div>承辦單位：${esc(SITE.unit)}</div><div>聯絡窗口：${esc(SITE.contact)}</div>
+  $('org').innerHTML=`<div>製作：<b>${esc(SITE.maker)}</b></div><div>用途：${esc(SITE.purpose)}</div>
     <div>資料日期（臺灣時間）：NCDR 日曆 <b>${esc(fmtT(up.ncdr))}</b>・疾管署 <b>${esc(fmtT(up.cdc))}</b>・氣象署 ${esc(fmtT(up.climate))}</div>
     <div>審閱狀態：<span class="review">${esc(SITE.review)}</span></div>`;
 }
