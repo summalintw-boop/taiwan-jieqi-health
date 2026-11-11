@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: 更新資料
-        run: python update_data.py || echo "部分來源失敗，沿用上一版資料"
+        run: python update_data.py --only ncdr,climate   # 疾管署由臺灣的電腦每週補抓（local_cdc_update.ps1）
       - name: 保存資料快照
         run: |
           git config user.name "github-actions"

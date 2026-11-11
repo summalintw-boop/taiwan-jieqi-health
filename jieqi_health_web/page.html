@@ -488,6 +488,8 @@ $('j-tl').addEventListener('click',e=>{const b=e.target.closest('button[data-i]'
 const nf=n=>n.toLocaleString('zh-TW');
 function renderCDC(){
   const el=$('cdc'); if(!DATA||!DATA.cdc){el.innerHTML='<div class="card">沒有疾管署資料</div>';return;}
+  const cu=(DATA.updated&&DATA.updated.cdc)||DATA.generated, iw=DATA.cdc.ili&&DATA.cdc.ili.regions['全國'].weeks.slice(-1)[0];
+  $('cdc-lede').textContent=`疾管署開放資料「健保門診及住院就診人次」，近 16 週${iw?`（最新為 ${iw.y} 年第 ${iw.w} 週）`:''}，資料抓取於 ${fmtT(cu)}。數字是健保門診人次，和疾管署新聞稿的門急診人次計算方式不同。`;
   el.innerHTML=CDCK.map(([k,name])=>{
     const R=DATA.cdc[k]&&DATA.cdc[k].regions[REGION]; if(!R)return '';
     const w=R.weeks, L=w[w.length-1], P=w[w.length-2], ly=R.lastYear;
@@ -545,10 +547,12 @@ function renderSeason(){
      <div class="rbody">各月等級：${r.a.map((v,i)=>`${i+1}月 ${['低','中','高','很高'][v]}`).join('、')}</div></details>`).join('');
 }
 
+const fmtT=s=>s?String(s).replace('T',' ').slice(0,16):'—';
 function renderFooter(){
-  const g=DATA&&DATA.generated?DATA.generated.replace('T',' ').slice(0,16):'—';
+  const up=(DATA&&(DATA.updated||{ncdr:DATA.generated,cdc:DATA.generated,climate:DATA.generated}))||{};
   $('org').innerHTML=`<div>發布機關：<b>${esc(SITE.agency)}</b></div><div>承辦單位：${esc(SITE.unit)}</div><div>聯絡窗口：${esc(SITE.contact)}</div>
-    <div>資料更新：<b>${esc(g)}</b>（臺灣時間）</div><div>審閱狀態：<span class="review">${esc(SITE.review)}</span></div>`;
+    <div>資料日期（臺灣時間）：NCDR 日曆 <b>${esc(fmtT(up.ncdr))}</b>・疾管署 <b>${esc(fmtT(up.cdc))}</b>・氣象署 ${esc(fmtT(up.climate))}</div>
+    <div>審閱狀態：<span class="review">${esc(SITE.review)}</span></div>`;
 }
 
 function renderAll(){renderToday();renderCal();renderCDC();renderClimate();renderFooter();}
@@ -557,9 +561,13 @@ $('region').addEventListener('change',e=>{REGION=e.target.value;try{localStorage
 renderJQ();renderSeason();renderFooter();
 fetch('data.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
   DATA=j;
-  if(j.errors&&j.errors.length){$('notice').hidden=false;$('notice').textContent=`部分資料來源這次更新失敗，顯示的是上一版資料：${j.errors.map(e=>e.split(':')[0]).join('、')}`;}
-  const age=(Date.now()-new Date(j.generated).getTime())/86400000;
-  if(age>2){$('notice').hidden=false;$('notice').textContent=`資料已 ${Math.floor(age)} 天沒有更新，日曆中的「今天」可能不是最新判識。`;}
+  // 只有資料真的過舊才提醒：NCDR 日曆超過 2 天、疾管署週資料超過 14 天
+  const up=j.updated||{ncdr:j.generated,cdc:j.generated,climate:j.generated};
+  const ageD=s=>s?(Date.now()-new Date(s).getTime())/86400000:Infinity;
+  const warn=[];
+  if(ageD(up.ncdr)>2)warn.push(`NCDR 天氣日曆已 ${Math.floor(ageD(up.ncdr))} 天沒有更新，日曆中的「今天」可能不是最新判識`);
+  if(ageD(up.cdc)>14)warn.push(`疾管署監測資料已 ${Math.floor(ageD(up.cdc))} 天沒有更新`);
+  if(warn.length){$('notice').hidden=false;$('notice').textContent=warn.join('；')+'。';}
   renderAll();
 }).catch(err=>{
   $('notice').hidden=false;$('notice').textContent='讀不到 data.json，目前只顯示節氣內容。請確認資料更新程式已執行。';

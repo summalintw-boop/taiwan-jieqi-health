@@ -193,28 +193,44 @@ def build_site() -> None:
 
 
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description="更新節令健康曆資料")
+    ap.add_argument("--only", default="ncdr,cdc,climate",
+                    help="只更新這些來源（逗號分隔：ncdr,cdc,climate），其他沿用上一版")
+    args = ap.parse_args()
+    only = {s.strip() for s in args.only.split(",") if s.strip()}
+
     SITE.mkdir(exist_ok=True)
     now = dt.datetime.now(TW)
+    stamp = now.isoformat(timespec="minutes")
     old = {}
     if (SITE / "data.json").exists():
         try:
             old = json.loads((SITE / "data.json").read_text(encoding="utf-8"))
         except Exception:
             old = {}
-    data = {"generated": now.isoformat(timespec="minutes"), "errors": []}
+    # 各來源最後一次成功更新的時間；舊版 data.json 沒有這欄時用 generated 代替
+    updated = dict(old.get("updated") or {k: old.get("generated") for k in ("ncdr", "cdc", "climate") if k in old})
+    data = {"generated": stamp, "errors": []}
     for key, fn in (("ncdr", lambda: fetch_ncdr(now.date())), ("cdc", fetch_cdc), ("climate", fetch_cwa)):
+        if key not in only:
+            if key in old:
+                data[key] = old[key]
+            continue
         try:
             data[key] = fn()
+            updated[key] = stamp
             print(f"[ok] {key}")
         except Exception as e:  # 某個來源失敗時保留上一版資料
             data["errors"].append(f"{key}: {e}")
             if key in old:
                 data[key] = old[key]
             print(f"[fail] {key}: {e}", file=sys.stderr)
+    data["updated"] = updated
     (SITE / "data.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     build_site()
     print(f"wrote {SITE / 'data.json'} and index.html")
-    return 0 if not data["errors"] else 1
+    return 0
 
 
 if __name__ == "__main__":
