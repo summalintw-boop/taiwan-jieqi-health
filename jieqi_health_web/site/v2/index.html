@@ -292,6 +292,52 @@ footer ul{padding-left:1.2em;margin:6px 0}
       <li>健康提醒依天氣、溫度與月份規則產生，由 Summalin 彙整現有公開資料製作，內容待公共衛生及醫療專家審閱。</li>
       <li id="f-upd"></li>
     </ul>
+<details class="srcs" open>
+  <summary>開放資料原始連結（可自行下載檢核）</summary>
+  <style>
+  .srcs{margin:10px 0;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:.9rem;line-height:1.7;color:var(--ink)}
+  .srcs summary{cursor:pointer;font-weight:700}
+  .srcs h4{margin:10px 0 2px;font-size:.95rem}
+  .srcs ul{margin:2px 0;padding-left:1.2em}
+  .srcs table{border-collapse:collapse;width:100%;font-size:.85rem}
+  .srcs th,.srcs td{border-bottom:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
+  .srcs .sub{color:var(--muted);font-size:.8rem}
+  .srcs a{word-break:break-all}
+  </style>
+  <h4>1. 疾病管制署：健保門診及住院就診人次統計（群體監測）</h4>
+  <div class="sub">放在政府資料開放平臺，提供機關為衛生福利部疾病管制署，授權為政府資料開放授權條款第 1 版。本平台直接下載下列 CSV，只取「門診」人次，依縣市加總為全國、北部、中部、南部、東部，並另算 65 歲以上。</div>
+  <table>
+    <tr><th>項目</th><th>資料集頁面</th><th>本平台下載的 CSV</th></tr>
+    <tr><td>類流感</td><td><a href="https://data.gov.tw/dataset/14593" target="_blank" rel="noopener">data.gov.tw/dataset/14593</a></td><td><a href="https://od.cdc.gov.tw/eic/NHI_Influenza_like_illness.csv" target="_blank" rel="noopener">NHI_Influenza_like_illness.csv</a></td></tr>
+    <tr><td>COVID-19</td><td><a href="https://data.gov.tw/dataset/177291" target="_blank" rel="noopener">data.gov.tw/dataset/177291</a></td><td><a href="https://od.cdc.gov.tw/eic/NHI_COVID-19.csv" target="_blank" rel="noopener">NHI_COVID-19.csv</a></td></tr>
+    <tr><td>腹瀉</td><td><a href="https://data.gov.tw/dataset/14597" target="_blank" rel="noopener">data.gov.tw/dataset/14597</a></td><td><a href="https://od.cdc.gov.tw/eic/NHI_Diarrhea.csv" target="_blank" rel="noopener">NHI_Diarrhea.csv</a></td></tr>
+    <tr><td>腸病毒</td><td><a href="https://data.gov.tw/dataset/14590" target="_blank" rel="noopener">data.gov.tw/dataset/14590</a></td><td><a href="https://od.cdc.gov.tw/eic/NHI_EnteroviralInfection.csv" target="_blank" rel="noopener">NHI_EnteroviralInfection.csv</a></td></tr>
+  </table>
+  <div class="sub">CSV 欄位：年、週、就診類別、年齡別、縣市、該疾病健保就診人次、健保就診總人次。檔案很大（數十 MB），下載需要一點時間。這是健保門診人次，和疾管署新聞稿的門急診人次計算方式不同。</div>
+
+  <h4>2. 天氣類型</h4>
+  <ul>
+    <li>國家災害防救科技中心 AI 天氣判識日曆：<a href="https://watch.ncdr.nat.gov.tw/watch_page_calendar" target="_blank" rel="noopener">watch.ncdr.nat.gov.tw/watch_page_calendar</a>（本平台讀取的資料頁：<a href="https://watch.ncdr.nat.gov.tw/w_207" target="_blank" rel="noopener">w_207</a>）</li>
+  </ul>
+
+  <h4>3. 溫度與濕度</h4>
+  <ul>
+    <li>中央氣象署 氣候月平均（1991–2020 平年值）：<a href="https://www.cwa.gov.tw/V8/C/C/Statistics/monthlymean.html" target="_blank" rel="noopener">cwa.gov.tw 氣候月平均</a>，測站：臺北、臺中、高雄、花蓮、宜蘭</li>
+    <li>每日最高／最低溫（過去約 31 天分析值＋未來約 16 天預報）：<a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">Open-Meteo 預報 API</a>，非中央氣象署官方預報</li>
+    <li>節氣 30 年平均溫度：<a href="https://open-meteo.com/en/docs/historical-weather-api" target="_blank" rel="noopener">Open-Meteo 歷史資料 API</a>（ERA5 再分析，1991–2020）</li>
+  </ul>
+
+  <h4>4. 就醫警訊與血壓</h4>
+  <ul>
+    <li>中風辨識（微笑、舉手、說你好）：<a href="https://mohw.gov.tw/cp-16-74897-1.html" target="_blank" rel="noopener">衛生福利部（國民健康署）</a></li>
+    <li>流感危險徵兆：<a href="https://www.mohw.gov.tw/cp-16-88360-1.html" target="_blank" rel="noopener">衛生福利部（疾病管制署）</a></li>
+    <li>熱傷害：<a href="https://mohw.gov.tw/cp-16-82821-1.html" target="_blank" rel="noopener">衛生福利部（國民健康署）</a></li>
+    <li>登革熱警示徵象：<a href="https://mohw.gov.tw/cp-16-86925-1.html" target="_blank" rel="noopener">衛生福利部（疾病管制署）</a></li>
+    <li>居家量血壓 722 原則：<a href="https://www.mohw.gov.tw/cp-2704-87239-1.html" target="_blank" rel="noopener">衛生福利部（國民健康署）</a></li>
+  </ul>
+  <div class="sub">資料更新：天氣與溫度每天 06:10、14:10 自動更新；疾管署資料每週三、五上午由本機更新。每次抓取時間寫在 <a href="https://summalintw-boop.github.io/taiwan-jieqi-health/data.json" target="_blank" rel="noopener">data.json</a> 的 updated 欄位。</div>
+</details>
+
     本頁僅供健康資訊參考，不能取代醫療診斷。急症請撥 119。
   </footer>
 </div>

@@ -14,13 +14,25 @@ def read(p: Path) -> str:
     return p.read_text(encoding="utf-8")
 
 
+def sync_main_sources() -> None:
+    """把 parts/sources.html 同步進 page.html（完整版由 update_data.py 產生，不經過 build）。"""
+    p = HERE / "page.html"
+    s = read(p)
+    a, b = "<!--SOURCES_BEGIN-->", "<!--SOURCES_END-->"
+    i, j = s.index(a) + len(a), s.index(b)
+    new = s[:i] + "\n" + read(PARTS / "sources.html") + s[j:]
+    if new != s:
+        p.write_text(new, encoding="utf-8")
+        print("synced sources into page.html")
+
+
 def build(template: str, out_dir: str) -> None:
     main = read(HERE / "page.html")
     rules = main[main.index("// ===== 天文：太陽視黃經 ====="):main.index("// ===== 繪製：今日摘要 =====")]
     body = read(HERE / template)
     for key, val in (("/*@@RULES@@*/", rules), ("/*@@SHARED@@*/", read(PARTS / "shared_ui.js")),
                      ("<!--@@BP_HTML@@-->", read(PARTS / "bp.html")), ("/*@@BP_CSS@@*/", read(PARTS / "bp.css")),
-                     ("/*@@BP_JS@@*/", read(PARTS / "bp.js"))):
+                     ("/*@@BP_JS@@*/", read(PARTS / "bp.js")), ("<!--@@SOURCES@@-->", read(PARTS / "sources.html"))):
         assert key in body, f"{template} 缺少 {key}"
         body = body.replace(key, val)
     doc = ("<!doctype html>\n<html lang=\"zh-Hant-TW\">\n<head>\n<meta charset=\"utf-8\">\n"
@@ -34,5 +46,6 @@ def build(template: str, out_dir: str) -> None:
 
 
 if __name__ == "__main__":
+    sync_main_sources()
     build("page_v2.html", "v2")
     build("page_v3.html", "v3")
