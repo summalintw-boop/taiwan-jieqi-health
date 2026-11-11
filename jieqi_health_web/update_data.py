@@ -182,6 +182,30 @@ def fetch_cwa() -> dict:
     return res
 
 
+# ---------------- 每日最高／最低溫（Open-Meteo，免金鑰） ----------------
+# 過去 31 天為模式分析值，今天起 16 天為模式預報，非中央氣象署官方預報。
+TEMP_POINTS = {"臺北": (25.04, 121.51), "臺中": (24.15, 120.68), "高雄": (22.63, 120.30),
+               "宜蘭": (24.76, 121.75), "花蓮": (23.98, 121.61)}
+TEMP_URL = ("https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
+            "&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FTaipei&past_days=31&forecast_days=16")
+
+
+def fetch_temp() -> dict:
+    names = list(TEMP_POINTS)
+    url = TEMP_URL.format(lat=",".join(str(TEMP_POINTS[n][0]) for n in names),
+                          lon=",".join(str(TEMP_POINTS[n][1]) for n in names))
+    res = json.loads(get(url).decode("utf-8"))
+    if isinstance(res, dict):
+        res = [res]
+    out = {"source": "https://open-meteo.com/", "note": "Open-Meteo 模式資料，過去日期為分析值、未來為預報；非中央氣象署官方預報",
+           "stations": {}}
+    for n, r in zip(names, res):
+        d = r["daily"]
+        out["stations"][n] = {t: [mx, mn] for t, mx, mn in zip(d["time"], d["temperature_2m_max"], d["temperature_2m_min"])
+                              if mx is not None and mn is not None}
+    return out
+
+
 def build_site() -> None:
     frag = (HERE / "page.html").read_text(encoding="utf-8")
     doc = ("<!doctype html>\n<html lang=\"zh-Hant-TW\">\n<head>\n<meta charset=\"utf-8\">\n"
@@ -195,8 +219,8 @@ def build_site() -> None:
 def main() -> int:
     import argparse
     ap = argparse.ArgumentParser(description="更新節令健康曆資料")
-    ap.add_argument("--only", default="ncdr,cdc,climate",
-                    help="只更新這些來源（逗號分隔：ncdr,cdc,climate），其他沿用上一版")
+    ap.add_argument("--only", default="ncdr,cdc,climate,temp",
+                    help="只更新這些來源（逗號分隔：ncdr,cdc,climate,temp），其他沿用上一版")
     args = ap.parse_args()
     only = {s.strip() for s in args.only.split(",") if s.strip()}
 
@@ -210,9 +234,10 @@ def main() -> int:
         except Exception:
             old = {}
     # 各來源最後一次成功更新的時間；舊版 data.json 沒有這欄時用 generated 代替
-    updated = dict(old.get("updated") or {k: old.get("generated") for k in ("ncdr", "cdc", "climate") if k in old})
+    updated = dict(old.get("updated") or {k: old.get("generated") for k in ("ncdr", "cdc", "climate", "temp") if k in old})
     data = {"generated": stamp, "errors": []}
-    for key, fn in (("ncdr", lambda: fetch_ncdr(now.date())), ("cdc", fetch_cdc), ("climate", fetch_cwa)):
+    for key, fn in (("ncdr", lambda: fetch_ncdr(now.date())), ("cdc", fetch_cdc), ("climate", fetch_cwa),
+                    ("temp", fetch_temp)):
         if key not in only:
             if key in old:
                 data[key] = old[key]

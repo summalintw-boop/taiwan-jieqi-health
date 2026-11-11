@@ -67,6 +67,11 @@ h2{font-family:var(--f-display);font-size:21px;margin:34px 0 4px;letter-spacing:
 .dn{font-family:var(--f-mono);font-size:12px;font-weight:500}
 .dt{font-size:12px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
 .ds{font-size:11px;color:var(--lv3);font-weight:700}
+.tp{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.tp .lo{color:var(--winter)}.tp .hi{color:var(--summer)}
+.templine{font-family:var(--f-mono);font-size:14px;margin:4px 0 6px;font-variant-numeric:tabular-nums}
+.templine .lo{color:var(--winter);font-weight:500}.templine .hi{color:var(--summer);font-weight:500}
+@media (max-width:620px){.tp{font-size:10px}}
 .dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:auto}
 .dot{font-size:10px;line-height:1.5;padding:0 4px;border-radius:3px;color:#fff;white-space:nowrap}
 .dot.l1{background:var(--lv1)}.dot.l2{background:var(--lv2)}.dot.l3{background:var(--lv3)}
@@ -236,6 +241,7 @@ footer a{color:var(--accent)}
       <li><a href="https://watch.ncdr.nat.gov.tw/watch_page_calendar" target="_blank" rel="noopener">國家災害防救科技中心（NCDR）AI 天氣判識日曆</a>（實驗性產品，天氣資訊以中央氣象署預報為準；方法見 Hsu et al. 2026, <i>Geoscience Letters</i> 13:41）</li>
       <li><a href="https://data.gov.tw/" target="_blank" rel="noopener">疾病管制署開放資料</a>：健保門診及住院就診人次（類流感、COVID-19、腹瀉、腸病毒），od.cdc.gov.tw</li>
       <li><a href="https://www.cwa.gov.tw/V8/C/C/Statistics/monthlymean.html" target="_blank" rel="noopener">中央氣象署 氣候月平均</a>（1991–2020 平年值）</li>
+      <li>每日最高／最低溫：<a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> 模式資料（過去為分析值、未來約 16 天為預報），非中央氣象署官方預報；實際天氣請以<a href="https://www.cwa.gov.tw/" target="_blank" rel="noopener">中央氣象署</a>為準</li>
       <li>低溫健康效應：Gasparrini A. et al. (2015) <i>Lancet</i> 386:369–375</li>
       <li>高溫與心理健康：Liu J. et al. (2021) <i>Environment International</i> 153:106533（系統性回顧與統合分析）</li>
       <li>心理支持：衛生福利部安心專線 1925（24 小時免付費）</li>
@@ -336,13 +342,24 @@ function wxText(d,f){
   p.push(f.wet?'有降雨':'降雨少');
   return p.join('，')+'。';
 }
+// 每日最高／最低溫（Open-Meteo），依地區取代表測站
+function tempOf(date,region){
+  const st=STN[region][0], s=DATA&&DATA.temp&&DATA.temp.stations&&DATA.temp.stations[st];
+  if(!s||!s[date])return null;
+  const pd=new Date(Date.parse(date+'T00:00:00Z')-86400000).toISOString().slice(0,10), p=s[pd], [mx,mn]=s[date];
+  return{st,mx,mn,rng:mx-mn,dmn:p?mn-p[1]:0};
+}
 // 地區加權：某些風險在特定地區較明顯
 const RW={air:{中部:1,南部:1,東部:-1},wetcold:{北部:1,東部:1,中部:-1,南部:-1},dengue:{南部:1,北部:-1,東部:-1},heat:{中部:0,南部:0}};
 function risks(d,region){
   const f=parseWx(d), out=[], cool=['au','wi','sp'].includes(f.season), wintery=f.season==='wi'||[12,1,2].includes(f.m);
   const add=(k,lv,name,why,groups,act)=>{lv+=(RW[k]&&RW[k][region])||0; if(lv>=1)out.push({k,lv:Math.min(3,lv),name,why,groups:groups.map(g=>G[g]),act});};
-  if((f.ne||f.n||f.cold)&&cool)
-    add('cvd',f.cold?3:(wintery?3:2),'心血管・中風','冷空氣使氣溫下降、日夜溫差加大，血管收縮、血壓上升；低溫效應會延遲數天，冷空氣過後一週仍要留意。',
+  const tp=tempOf(d.date,region);
+  const cold10=!!(tp&&tp.mn<=10), drop=!!(tp&&tp.dmn<=-5);
+  const tt=tp?`（${tp.st}最低 ${tp.mn.toFixed(0)}°C${tp.dmn<=-3?`，比前一天低 ${(-tp.dmn).toFixed(0)}°C`:''}）`:'';
+  const cvdOn=tp?(tp.mn<=16||drop||f.cold):((f.ne||f.n||f.cold)&&cool);
+  if(cvdOn)
+    add('cvd',f.cold||cold10||drop?3:(tp?(tp.mn<=13||wintery?2:1):(wintery?3:2)),'心血管・中風','冷空氣使氣溫下降、日夜溫差加大'+tt+'，血管收縮、血壓上升；低溫效應會延遲數天，冷空氣過後一週仍要留意。',
       ['old','cvd','dm','ckd','solo'],'早晚與清晨出門保暖頭頸手腳；每天量血壓、藥不自行停；胸痛、單側無力、口齒不清立即打 119。');
   if((f.ne||f.n||f.cold||(f.wet&&cool)))
     add('resp',wintery||f.cold?3:2,'呼吸道感染','涼冷天氣使人待在室內、門窗緊閉，流感、新冠、RSV 與肺炎鏈球菌容易傳播；長者重症比例最高。',
@@ -353,23 +370,23 @@ function risks(d,region){
   if(f.ne&&f.wet)
     add('wetcold',2,'濕冷・跌倒','迎風面持續降雨、濕冷，路面與浴室濕滑；濕冷也讓關節不適、活動量下降。',
       ['old','mob','solo'],'浴室加防滑墊與扶手，雨天外出穿防滑鞋；室內保持溫暖乾燥。');
-  if((f.cold||((f.ne||f.n)&&wintery)))
-    add('co',f.cold?3:2,'一氧化碳中毒','天冷門窗緊閉、熱水器裝在室內或加蓋陽台，燃燒不完全產生一氧化碳。',
+  if(f.cold||((f.ne||f.n)&&wintery)||(tp&&tp.mn<=12))
+    add('co',f.cold||(tp&&tp.mn<=8)?3:2,'一氧化碳中毒','天冷門窗緊閉、熱水器裝在室內或加蓋陽台，燃燒不完全產生一氧化碳。',
       ['oldhouse','solo','old'],'熱水器裝在室外、洗澡時開窗；頭痛頭暈想吐立即開窗離開；不要燒炭取暖。');
   if(f.dry&&cool&&(f.ne||f.n||f.cold))
     add('skin',1,'皮膚乾癢・乾燥型濕疹','空氣乾燥加上洗熱水澡，皮膚屏障受損；長者皮脂分泌少，小腿、背部容易乾裂發癢，抓破後可能感染。',
       ['old','skin','dm'],'洗澡水不超過 40°C、少用肥皂，洗完 3 分鐘內擦乳液；剪短指甲避免抓破；癢到影響睡眠或出現滲液就醫。');
   // 過敏性鼻炎・蕁麻疹：日夜溫差大、天氣類型轉換、轉季月份
-  const swing=cool&&f.dry&&(f.ne||f.n), turn=!!d._turn, shoulder=[3,4,10,11].includes(f.m);
+  const swing=tp?tp.rng>=8:(cool&&f.dry&&(f.ne||f.n)), turn=!!d._turn, shoulder=[3,4,10,11].includes(f.m);
   if(swing||turn||shoulder)
-    add('allergy',(swing||turn)&&shoulder?2:1,'過敏性鼻炎・蕁麻疹','日夜溫差大或天氣型態轉換時，鼻黏膜與皮膚對冷熱刺激敏感，容易打噴嚏、鼻塞，或出現冷熱引起的蕁麻疹。'+(turn?'這天的天氣類型和前一天不同。':''),
+    add('allergy',(swing&&(turn||shoulder||(tp&&tp.rng>=10)))?2:1,'過敏性鼻炎・蕁麻疹','日夜溫差大或天氣型態轉換時，鼻黏膜與皮膚對冷熱刺激敏感，容易打噴嚏、鼻塞，或出現冷熱引起的蕁麻疹。'+(tp?`${tp.st}日夜溫差約 ${tp.rng.toFixed(0)}°C。`:'')+(turn?'這天的天氣類型和前一天不同。':''),
       ['allergy','urt','copd','skin'],'早晚出門戴口罩、圍巾保暖口鼻；依醫囑使用鼻噴劑或抗組織胺；蕁麻疹合併呼吸困難、嘴唇腫立即就醫。');
   // 濕疹・汗疹・黴菌：高溫高濕
   if(['su','me'].includes(f.season)&&(f.wet||f.s||f.sw||f.high||f.conv||f.season==='me'))
     add('eczema',f.season==='me'||f.wet?2:1,'濕疹・汗疹・皮膚黴菌','高溫潮濕讓汗水悶在皮膚皺摺處，容易長汗疹、濕疹，也利於黴菌（股癬、念珠菌）孳生；臥床與穿尿布的長者最常見。',
       ['bed','dm','old','baby'],'衣物選透氣吸汗材質，汗濕就換；皮膚皺摺處保持乾爽；照顧臥床者每 2 小時翻身並檢查尿布區皮膚；紅疹擴大或化膿就醫。');
   // 心理健康：連續陰雨、冬季日照短、高溫、颱風災後
-  const streak=d._streak||0, hot=['su','me'].includes(f.season)&&(f.high||f.season==='su'&&f.dry);
+  const streak=d._streak||0, hot=tp?tp.mx>=33:(['su','me'].includes(f.season)&&(f.high||f.season==='su'&&f.dry));
   if(streak>=3||f.ty||hot||(wintery&&(f.ne||f.n||f.cold)))
     add('mind',f.ty||streak>=5||hot?2:1,'情緒・睡眠・精神症狀',
       f.ty?'颱風與災害帶來的財物損失、停電與撤離，容易引起焦慮、失眠與壓力反應，原有精神疾病也可能惡化。':
@@ -378,8 +395,9 @@ function risks(d,region){
       '冬季日照短、天冷外出少，獨居長者社交減少，容易情緒低落、失眠；年節前後孤獨感也較明顯。',
       f.ty?['disaster','mental','old','carer']:['mental','solo','dementia','carer'],
       '維持規律作息與白天活動，多曬太陽、與親友聯絡；照顧者留意長者食慾、睡眠與言語的變化；心情低落或有輕生念頭，撥打安心專線 1925（24 小時免付費）。');
-  if(['su','me'].includes(f.season)&&(f.high||f.s||f.conv||f.e||(f.sw&&!f.wet)||(f.season==='su'&&f.dry)))
-    add('heat',f.high||f.season==='su'?3:2,'熱傷害','高溫潮濕使身體散熱困難；長者體溫調節較差，在室內不開冷氣也可能中暑。',
+  const heatOld=['su','me'].includes(f.season)&&(f.high||f.s||f.conv||f.e||(f.sw&&!f.wet)||(f.season==='su'&&f.dry));
+  if(tp?tp.mx>=30:heatOld)
+    add('heat',tp?(tp.mx>=34?3:tp.mx>=32?2:1):(f.high||f.season==='su'?3:2),'熱傷害','高溫潮濕使身體散熱困難'+(tp?`（${tp.st}最高 ${tp.mx.toFixed(0)}°C）`:'')+'；長者體溫調節較差，在室內不開冷氣也可能中暑。',
       ['old','solo','cvd','ckd','outdoor','baby'],'10–14 時避免戶外活動，少量多次喝水；室內開冷氣或電扇；體溫高、意識不清立即降溫並打 119。');
   if(f.wet&&(f.sw||f.front||f.ty||['me','su'].includes(f.season)))
     add('flood',f.ty?3:2,'豪雨後感染','豪雨淹水後，汙水與土壤散播鉤端螺旋體、類鼻疽菌；傷口接觸汙水易感染。',
@@ -425,7 +443,10 @@ function renderToday(){
   const d=DATA&&DATA.ncdr&&DATA.ncdr.days.find(x=>x.date===ty);
   if(!d){$('t-wx').textContent='沒有今日資料';$('t-risk').innerHTML='';return;}
   $('t-wx').textContent=`${d.season}・${d.type}`;
-  $('t-wx-tags').innerHTML=(d.rain?'<span class="tag rain">有雨日</span>':'')+`<span class="tag fc">今日推估</span><div class="meta" style="margin-top:6px">${esc(wxText(d,parseWx(d)))}</div>`;
+  const tp=tempOf(ty,REGION);
+  $('t-wx-tags').innerHTML=(d.rain?'<span class="tag rain">有雨日</span>':'')+`<span class="tag fc">今日推估</span>`+
+    (tp?`<div class="templine">${tp.st} <span class="lo">${tp.mn.toFixed(0)}°C</span> – <span class="hi">${tp.mx.toFixed(0)}°C</span></div>`:'')+
+    `<div class="meta" style="margin-top:6px">${esc(wxText(d,parseWx(d)))}</div>`;
   $('t-risk-h').textContent=`今日健康重點與高危險群（${REGION}）`;
   $('t-risk').innerHTML=risks(d,REGION).slice(0,3).map(r=>`<div class="tr"><span class="pill l${r.lv}">${LVN[r.lv]}</span><b>${r.name}</b><span class="g">高危險群：${r.groups.join('、')}</span></div>`).join('');
 }
@@ -446,6 +467,7 @@ function renderCal(){
     h+=`<button class="day${d.kind!=='obs'?' fc':''}${d.date===SEL?' sel':''}${d.date===ty?' is-today':''}" data-d="${d.date}" aria-pressed="${d.date===SEL}" aria-label="${d.date} ${esc(d.type)}">
       <span class="dn">${lab}</span>
       <span class="dt">${d.rain?'<span class="tag rain" style="font-size:10px;padding:0 4px;margin:0 2px 0 0">雨</span>':''}${esc(d.type)}</span>
+      ${(t=>t?`<span class="tp"><span class="lo">${t.mn.toFixed(0)}</span>–<span class="hi">${t.mx.toFixed(0)}</span>°</span>`:'')(tempOf(d.date,REGION))}
       ${d.solar?`<span class="ds">${esc(d.solar)}</span>`:''}
       <span class="dots">${rs.filter(r=>r.lv>=2).slice(0,3).map(r=>`<span class="dot l${r.lv}" title="${r.name}">${SHORT[r.k]}</span>`).join('')}</span>
     </button>`;
@@ -469,6 +491,7 @@ function renderDetail(){
   $('detail').innerHTML=`
     <div class="eyebrow">${+d.date.slice(5,7)}/${+d.date.slice(8)}（${WD[dt.getUTCDay()]}）・${kind}・${T[tm.i].n}${d.solar?'（節氣日）':''}</div>
     <h3>${esc(d.season)}・${esc(d.type)} ${d.rain?'<span class="tag rain">有雨日</span>':''}</h3>
+    ${(t=>t?`<div class="templine">${t.st}　最低 <span class="lo">${t.mn.toFixed(1)}°C</span>・最高 <span class="hi">${t.mx.toFixed(1)}°C</span>・溫差 ${t.rng.toFixed(1)}°C${t.dmn?`・最低溫較前一天 ${t.dmn>0?'+':''}${t.dmn.toFixed(1)}°C`:''}</div><div class="sub">${d.kind==='obs'?'模式分析值':'模式預報'}（Open-Meteo），非中央氣象署官方預報</div>`:'')(tempOf(d.date,REGION))}
     <p class="expl">${esc(wxText(d,f))}</p>
     ${clTxt?`<div class="sub">${mi+1} 月平年值（月均溫・相對濕度）：${clTxt}</div>`:''}
     ${rs.map(r=>`<div class="rk"><div class="rk-h"><span class="pill l${r.lv}">${LVN[r.lv]}</span><b>${r.name}</b></div>
@@ -593,6 +616,7 @@ fetch('data.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status
   const warn=[];
   if(ageD(up.ncdr)>2)warn.push(`NCDR 天氣日曆已 ${Math.floor(ageD(up.ncdr))} 天沒有更新，日曆中的「今天」可能不是最新判識`);
   if(ageD(up.cdc)>14)warn.push(`疾管署監測資料已 ${Math.floor(ageD(up.cdc))} 天沒有更新`);
+  if(up.temp&&ageD(up.temp)>2)warn.push(`預報溫度已 ${Math.floor(ageD(up.temp))} 天沒有更新`);
   if(warn.length){$('notice').hidden=false;$('notice').textContent=warn.join('；')+'。';}
   renderAll();
 }).catch(err=>{
