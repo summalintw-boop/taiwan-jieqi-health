@@ -88,10 +88,16 @@ h2{font-family:var(--f-display);font-size:21px;margin:34px 0 4px;letter-spacing:
 @media (max-width:620px){.tp{font-size:10px}}
 .dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:auto}
 .dot{font-size:10px;line-height:1.5;padding:0 4px;border-radius:3px;color:#fff;white-space:nowrap}
+.dot .abbr{display:none}
+.dot .ic{margin-right:2px;font-size:1.05em}
+.abbr-key{display:none;font-size:12px;color:var(--muted);margin-top:4px}
 .dot.l1{background:var(--lv1)}.dot.l2{background:var(--lv2)}.dot.l3{background:var(--lv3)}
 @media (max-width:620px){
   .day{min-height:64px;padding:3px}
-  .dot{font-size:0;width:8px;height:8px;padding:0;border-radius:50%}
+  .dot{font-size:11px;padding:0 3px;line-height:1.45}
+  .dot .full{display:none}
+  .dot .abbr{display:inline}
+  .abbr-key{display:block}
   .dt{font-size:11px}
 }
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:8px}
@@ -108,7 +114,9 @@ h2{font-family:var(--f-display);font-size:21px;margin:34px 0 4px;letter-spacing:
 .grp span{font-size:12px;background:var(--accent-soft);border-radius:4px;padding:1px 7px}
 .rk .act{font-size:13px;color:var(--muted)}
 .outlook{display:flex;flex-direction:column;gap:5px;margin-top:6px}
-.ol{display:grid;grid-template-columns:7em minmax(0,1fr) 3.5em;gap:8px;align-items:center;font-size:13px}
+.ol{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3em;gap:8px;align-items:center;font-size:13px}
+.ol-card{margin-top:12px;padding:12px 14px;max-width:460px}
+.ol-card .outlook{margin-top:6px}
 .ol .bar{height:10px;border-radius:0 4px 4px 0;background:var(--accent)}
 .ol .n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
 
@@ -229,15 +237,14 @@ footer a{color:var(--accent)}
         <span><i style="background:var(--fcst)"></i>未來推估</span>
         <span><i style="background:var(--rain)"></i>有雨日</span>
       </div>
+      <div class="abbr-key" id="abbr-key"></div>
+      <div class="card ol-card">
+        <div class="eyebrow">未來 14 天提醒</div>
+        <div class="sub" id="ol-h"></div>
+        <div class="outlook" id="outlook"></div>
+      </div>
     </div>
     <aside class="card detail" id="detail" aria-live="polite"></aside>
-  </div>
-
-  <h2>未來 14 天提醒</h2>
-  <div class="card">
-    <div class="eyebrow" id="ol-h">未來推估期間的風險日數</div>
-    <div class="outlook" id="outlook"></div>
-    <div class="sub" style="margin-top:6px">每天的細節請看上方日曆（淡橘色為未來推估）。</div>
   </div>
 
   <h2>疾管署監測趨勢</h2>
@@ -435,6 +442,8 @@ function risks(d,region){
   return out.sort((a,b)=>b.lv-a.lv);
 }
 const SHORT={cvd:'心血管',resp:'呼吸道',air:'空品',wetcold:'濕冷',co:'一氧化碳',skin:'皮膚乾癢',allergy:'過敏',eczema:'濕疹',heat:'熱傷害',flood:'災後感染',dengue:'登革熱',typhoon:'颱風',gi:'腸胃',ev:'腸病毒',calm:'平穩'};
+const ICON={cvd:'❤️',resp:'😷',air:'🌫️',wetcold:'🌧️',co:'⚠️',skin:'🧴',allergy:'🤧',eczema:'💦',heat:'🌡️',flood:'🌊',dengue:'🦟',typhoon:'🌀',gi:'🤢',ev:'👶',calm:'🙂'};
+const ABBR={cvd:'心',resp:'呼',air:'空',wetcold:'濕',co:'碳',skin:'膚',allergy:'敏',eczema:'疹',heat:'熱',flood:'災',dengue:'登',typhoon:'颱',gi:'胃',ev:'腸',calm:'穩'};
 const LVN=['','需留意','風險中','風險高'];
 
 // ===== 季節性（月相對等級）=====
@@ -464,7 +473,7 @@ function renderToday(){
     (tp?`<div class="templine">${tp.st} <span class="lo">${tp.mn.toFixed(0)}°C</span> – <span class="hi">${tp.mx.toFixed(0)}°C</span></div>`:'')+
     `<div class="meta" style="margin-top:6px">${esc(wxText(d,parseWx(d)))}</div>`;
   $('t-risk-h').textContent=`今日健康重點與高危險群（${REGION}）`;
-  $('t-risk').innerHTML=risks(d,REGION).slice(0,3).map(r=>`<div class="tr"><span class="pill l${r.lv}">${LVN[r.lv]}</span><b>${r.name}</b><span class="g">高危險群：${r.groups.join('、')}</span></div>`).join('');
+  $('t-risk').innerHTML=risks(d,REGION).slice(0,3).map(r=>`<div class="tr"><span class="pill l${r.lv}">${LVN[r.lv]}</span><b>${ICON[r.k]||''} ${r.name}</b><span class="g">高危險群：${r.groups.join('、')}</span></div>`).join('');
 }
 
 // ===== 日曆 =====
@@ -485,16 +494,18 @@ function renderCal(){
       <span class="dt">${d.rain?'<span class="tag rain" style="font-size:10px;padding:0 4px;margin:0 2px 0 0">雨</span>':''}${esc(d.type)}</span>
       ${(t=>t?`<span class="tp"><span class="lo">${t.mn.toFixed(0)}</span>–<span class="hi">${t.mx.toFixed(0)}</span>°</span>`:'')(tempOf(d.date,REGION))}
       ${d.solar?`<span class="ds">${esc(d.solar)}</span>`:''}
-      <span class="dots">${rs.filter(r=>r.lv>=2).slice(0,3).map(r=>`<span class="dot l${r.lv}" title="${r.name}">${SHORT[r.k]}</span>`).join('')}</span>
+      <span class="dots">${rs.filter(r=>r.lv>=2).slice(0,3).map(r=>`<span class="dot l${r.lv}" title="${r.name}"><span class="ic">${ICON[r.k]||''}</span><span class="full">${SHORT[r.k]}</span><span class="abbr">${ABBR[r.k]||SHORT[r.k][0]}</span></span>`).join('')}</span>
     </button>`;
   });
   el.innerHTML=h;
+  {const seen=new Set();days.forEach(d=>risks(d,REGION).filter(r=>r.lv>=2).slice(0,3).forEach(r=>seen.add(r.k)));
+   $('abbr-key').textContent=seen.size?'圖示：'+[...seen].map(k=>`${ICON[k]||''}${ABBR[k]||SHORT[k][0]}＝${SHORT[k]}`).join('、'):'';}
   // 未來推估期間的風險日數
   const fut=days.filter(d=>d.kind!=='obs'), cnt={};
   fut.forEach(d=>risks(d,REGION).forEach(r=>{if(r.lv>=2)cnt[r.k]=(cnt[r.k]||0)+1;}));
   const ks=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
-  $('ol-h').textContent=fut.length?`未來推估 ${fut.length} 天（${fut[0].date.slice(5).replace('-','/')}–${fut[fut.length-1].date.slice(5).replace('-','/')}）中，風險中以上的日數・${REGION}`:'沒有未來推估資料';
-  $('outlook').innerHTML=ks.length?ks.map(k=>`<div class="ol"><span>${SHORT[k]}</span><span><span class="bar" style="display:block;width:${cnt[k]/fut.length*100}%"></span></span><span class="n">${cnt[k]} 天</span></div>`).join(''):'<div class="sub">推估期間沒有中等以上風險。</div>';
+  $('ol-h').textContent=fut.length?`${fut[0].date.slice(5).replace('-','/')}–${fut[fut.length-1].date.slice(5).replace('-','/')}・${REGION}・風險中以上的日數`:'沒有未來推估資料';
+  $('outlook').innerHTML=ks.length?ks.map(k=>`<div class="ol"><span>${ICON[k]||''} ${SHORT[k]}</span><span><span class="bar" style="display:block;width:${cnt[k]/fut.length*100}%"></span></span><span class="n">${cnt[k]} 天</span></div>`).join(''):'<div class="sub">推估期間沒有中等以上風險。</div>';
   renderDetail();
 }
 function renderDetail(){
@@ -510,7 +521,7 @@ function renderDetail(){
     ${(t=>t?`<div class="templine">${t.st}　最低 <span class="lo">${t.mn.toFixed(1)}°C</span>・最高 <span class="hi">${t.mx.toFixed(1)}°C</span>・溫差 ${t.rng.toFixed(1)}°C${t.dmn?`・最低溫較前一天 ${t.dmn>0?'+':''}${t.dmn.toFixed(1)}°C`:''}</div><div class="sub">${d.kind==='obs'?'模式分析值':'模式預報'}（Open-Meteo），非中央氣象署官方預報</div>`:'')(tempOf(d.date,REGION))}
     <p class="expl">${esc(wxText(d,f))}</p>
     ${clTxt?`<div class="sub">${mi+1} 月平年值（月均溫・相對濕度）：${clTxt}</div>`:''}
-    ${rs.map(r=>`<div class="rk"><div class="rk-h"><span class="pill l${r.lv}">${LVN[r.lv]}</span><b>${r.name}</b></div>
+    ${rs.map(r=>`<div class="rk"><div class="rk-h"><span class="pill l${r.lv}">${LVN[r.lv]}</span><b>${ICON[r.k]||''} ${r.name}</b></div>
       <p>${r.why}</p><div class="grp">${r.groups.map(g=>`<span>${g}</span>`).join('')}</div><div class="act">建議：${r.act}</div></div>`).join('')}
     <div class="sub" style="margin-top:6px">${REGION}的風險等級已依地區調整。天氣類型說明與疾病對應由本平台撰寫，正式天氣資訊以中央氣象署為準。</div>`;
 }
