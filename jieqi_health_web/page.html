@@ -98,6 +98,21 @@ h2{font-family:var(--f-display);font-size:21px;margin:34px 0 4px;letter-spacing:
 .ol .bar{height:10px;border-radius:0 4px 4px 0;background:var(--accent)}
 .ol .n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
 
+/* 心理健康資源 */
+.mh{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:960px){.mh{grid-template-columns:minmax(0,1fr)}}
+.lines{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lines li{display:flex;flex-direction:column;gap:0}
+.lines li br{display:none}
+.lines li .sub{margin-left:6px}
+.lines .num{font-family:var(--f-mono);font-size:22px;font-weight:500;color:var(--accent);user-select:all;white-space:nowrap}
+.mhtbl{min-width:0!important}
+.mhtbl td:last-child{font-family:var(--f-mono);white-space:nowrap;user-select:all}
+.mhtbl td{text-align:left!important}
+.mh-ctl{margin:6px 0}
+.mh-ctl button{background:transparent;border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:13px}
+.warnlist{margin:6px 0;padding-left:1.2em;font-size:14px}
+
 /* 節氣 */
 .jq{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:820px){.jq{grid-template-columns:minmax(0,1fr)}}
@@ -209,6 +224,37 @@ footer a{color:var(--accent)}
     <aside class="card detail" id="detail" aria-live="polite"></aside>
   </div>
 
+  <h2 id="mh">心理健康求助資源</h2>
+  <p class="lede">自己或身邊的人情緒低落、睡不好、精神症狀變化，或有輕生念頭，都可以打電話求助。有立即危險請撥 119 或 110。</p>
+  <div class="mh">
+    <div class="card mh-lines">
+      <div class="eyebrow">全國專線</div>
+      <ul class="lines">
+        <li><b class="num">1925</b><span>衛福部安心專線<br><span class="sub">24 小時・免付費</span></span></li>
+        <li><b class="num">1995</b><span>生命線協談專線<br><span class="sub">24 小時</span></span></li>
+        <li><b class="num">1980</b><span>張老師專線</span></li>
+        <li><b class="num">0800-013-999</b><span>男性關懷專線<br><span class="sub">每天 07:00–23:00・免付費</span></span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="eyebrow" id="mh-h">各縣市社區心理衛生中心・心理諮詢專線</div>
+      <div class="tblwrap" style="border:0;margin-top:6px"><table class="cl mhtbl" id="mh-tbl"></table></div>
+      <div class="mh-ctl"><button type="button" id="mh-all">顯示全部縣市</button></div>
+      <div class="sub">資料來源：<a href="https://dep.mohw.gov.tw/domhaoh/cp-4558-69568-107.html" target="_blank" rel="noopener">衛生福利部心理健康司「各縣市社區心理諮商服務一覽表」</a>（資料更新 115/06/30）。服務時間與預約方式請以各縣市公告為準。</div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">照顧精神疾病患者：需要留意的警訊</div>
+      <ul class="warnlist">
+        <li>連續幾天睡不著，或作息日夜顛倒</li>
+        <li>食慾明顯改變、不想出門、不想說話</li>
+        <li>自言自語、多疑或情緒起伏比平常明顯</li>
+        <li>自行停藥或不想回診</li>
+        <li>說出「活著沒意思」等輕生的話</li>
+      </ul>
+      <div class="sub">出現警訊時，聯繫原就診醫院、個案管理員或所在縣市的社區心理衛生中心；有立即危險撥 119 或 110。</div>
+    </div>
+  </div>
+
   <h2>二十四節氣</h2>
   <p class="lede">點選輪盤上的節氣查看該節氣的健康重點。指針是今天太陽在黃道上的位置。</p>
   <div class="jq">
@@ -238,7 +284,7 @@ footer a{color:var(--accent)}
     <div class="org" id="org"></div>
     <div>資料來源</div>
     <ul>
-      <li><a href="https://watch.ncdr.nat.gov.tw/watch_page_calendar" target="_blank" rel="noopener">國家災害防救科技中心（NCDR）AI 天氣判識日曆</a>（實驗性產品，天氣資訊以中央氣象署預報為準；方法見 Hsu et al. 2026, <i>Geoscience Letters</i> 13:41）</li>
+      <li><a href="https://watch.ncdr.nat.gov.tw/watch_page_calendar" target="_blank" rel="noopener">國家災害防救科技中心（NCDR）AI 天氣判識日曆</a>（實驗性產品，天氣資訊以中央氣象署預報為準；NCDR 頁面引用的參考文章：Hsu et al. 2026, <i>Geoscience Letters</i> 13:41，該文為春季梅雨前期的天氣分類，其他季節的類型定義請以 NCDR 說明為準）</li>
       <li><a href="https://data.gov.tw/" target="_blank" rel="noopener">疾病管制署開放資料</a>：健保門診及住院就診人次（類流感、COVID-19、腹瀉、腸病毒），od.cdc.gov.tw</li>
       <li><a href="https://www.cwa.gov.tw/V8/C/C/Statistics/monthlymean.html" target="_blank" rel="noopener">中央氣象署 氣候月平均</a>（1991–2020 平年值）</li>
       <li>每日最高／最低溫：<a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> 模式資料（過去為分析值、未來約 16 天為預報），非中央氣象署官方預報；實際天氣請以<a href="https://www.cwa.gov.tw/" target="_blank" rel="noopener">中央氣象署</a>為準</li>
@@ -311,7 +357,7 @@ const G={
   old:'65 歲以上長者', solo:'獨居長者', cvd:'高血壓、心臟病、中風病史', dm:'糖尿病', ckd:'慢性腎病、洗腎',
   copd:'COPD、氣喘', baby:'嬰幼兒', ltc:'長照機構住民', unvax:'未接種疫苗者', outdoor:'戶外工作者',
   mob:'行動不便、失能者', home:'街友', vent:'使用居家呼吸器、製氧機者', oldhouse:'老舊公寓住戶', skin:'異位性皮膚炎', imm:'免疫力低下者', care:'照顧孫輩的長者', preg:'孕婦',
-  allergy:'過敏性鼻炎、過敏體質', urt:'曾有蕁麻疹者', bed:'臥床、長期穿尿布者', mental:'有憂鬱、焦慮或失眠病史者', dementia:'失智症長者', carer:'家庭照顧者', disaster:'受災或撤離者'
+  psy:'精神疾病患者', allergy:'過敏性鼻炎、過敏體質', urt:'曾有蕁麻疹者', bed:'臥床、長期穿尿布者', mental:'有憂鬱、焦慮或失眠病史者', dementia:'失智症長者', carer:'家庭照顧者', disaster:'受災或撤離者'
 };
 function parseWx(d){
   const t=(d.type||'')+' '+(d.season||''), m=+d.date.slice(5,7);
@@ -395,6 +441,18 @@ function risks(d,region){
       '冬季日照短、天冷外出少，獨居長者社交減少，容易情緒低落、失眠；年節前後孤獨感也較明顯。',
       f.ty?['disaster','mental','old','carer']:['mental','solo','dementia','carer'],
       '維持規律作息與白天活動，多曬太陽、與親友聯絡；照顧者留意長者食慾、睡眠與言語的變化；心情低落或有輕生念頭，撥打安心專線 1925（24 小時免付費）。');
+  // 精神疾病患者照護（給照顧者）：高溫、颱風災害、連續陰雨、冬季與年節
+  const holiday=[1,2].includes(f.m);
+  if((tp&&tp.mx>=30)||(!tp&&hot)||f.ty||streak>=3||wintery||holiday)
+    add('psy',(tp&&tp.mx>=33)||f.ty?2:1,'精神疾病照護',
+      (tp&&tp.mx>=30)||(!tp&&hot)?'部分精神科藥物會影響體溫調節、排汗與口渴感，高溫時較容易中暑或脫水；天熱睡不好也可能讓症狀波動。':
+      f.ty?'颱風與停電、撤離會打亂作息，也可能中斷回診與治療，壓力增加時症狀容易復發。':
+      streak>=3?'連續陰雨、外出減少，生活節奏改變，症狀可能悄悄加重。':
+      '冬季與年節前後社交與作息變化大，獨居或缺少支持的患者容易孤單，症狀可能復發。',
+      ['psy','carer','solo'],
+      (tp&&tp.mx>=30)||(!tp&&hot)?'多補充水分、避開正午外出，室內保持涼爽；依醫囑使用藥物，不自行停藥；出現高燒、意識混亂、肌肉僵硬立即就醫。':
+      f.ty?'颱風前備足藥物與回診資訊，和個案管理員或原就診醫院保持聯絡；依醫囑使用藥物。':
+      '照顧者多聯繫、陪伴規律作息；留意睡眠、食慾與言行變化；出現警訊聯繫原就診醫院或社區心理衛生中心（見下方「心理健康求助資源」）。');
   const heatOld=['su','me'].includes(f.season)&&(f.high||f.s||f.conv||f.e||(f.sw&&!f.wet)||(f.season==='su'&&f.dry));
   if(tp?tp.mx>=30:heatOld)
     add('heat',tp?(tp.mx>=34?3:tp.mx>=32?2:1):(f.high||f.season==='su'?3:2),'熱傷害','高溫潮濕使身體散熱困難'+(tp?`（${tp.st}最高 ${tp.mx.toFixed(0)}°C）`:'')+'；長者體溫調節較差，在室內不開冷氣也可能中暑。',
@@ -419,7 +477,7 @@ function risks(d,region){
     out.push({k:'calm',lv:1,name:'天氣平穩',why:'這個天氣類型沒有明顯的健康風險訊號。',groups:[G.old],act:'維持規律作息，依醫囑使用藥物。'});
   return out.sort((a,b)=>b.lv-a.lv);
 }
-const SHORT={cvd:'心血管',resp:'呼吸道',air:'空品',wetcold:'濕冷',co:'一氧化碳',skin:'皮膚乾癢',allergy:'過敏',eczema:'濕疹',mind:'情緒',heat:'熱傷害',flood:'災後感染',dengue:'登革熱',typhoon:'颱風',gi:'腸胃',ev:'腸病毒',calm:'平穩'};
+const SHORT={cvd:'心血管',resp:'呼吸道',air:'空品',wetcold:'濕冷',co:'一氧化碳',skin:'皮膚乾癢',allergy:'過敏',eczema:'濕疹',mind:'情緒',psy:'精神照護',heat:'熱傷害',flood:'災後感染',dengue:'登革熱',typhoon:'颱風',gi:'腸胃',ev:'腸病毒',calm:'平穩'};
 const LVN=['','需留意','風險中','風險高'];
 
 // ===== 季節性（月相對等級）=====
@@ -594,6 +652,31 @@ function renderSeason(){
      <div class="rbody">各月等級：${r.a.map((v,i)=>`${i+1}月 ${['低','中','高','很高'][v]}`).join('、')}</div></details>`).join('');
 }
 
+// ===== 各縣市社區心理衛生中心（衛福部心理健康司，資料更新 115/06/30）=====
+const MH=[
+ ['北部','臺北市','臺北市政府衛生局心理衛生中心','02-3393-7885'],['北部','新北市','新北市社區心理衛生中心','02-2257-2623'],
+ ['北部','基隆市','基隆市衛生局','02-2456-6185 分機 113'],['北部','桃園市','桃園市政府衛生局','03-332-5880'],
+ ['北部','新竹市','新竹市社區心理衛生中心','03-535-5276'],['北部','新竹縣','新竹縣政府衛生局','03-656-7138'],
+ ['中部','苗栗縣','苗栗縣社區心理衛生中心','037-558-757'],['中部','臺中市','臺中市政府衛生局','04-2533-0335 分機 320'],
+ ['中部','彰化縣','彰化縣社區心理衛生中心','04-712-7839'],['中部','南投縣','南投縣政府衛生局','049-220-2662'],
+ ['中部','雲林縣','雲林縣衛生局','請洽各鄉鎮市衛生所'],
+ ['南部','嘉義市','嘉義市政府衛生局','05-2255155 分機 41 或 51'],['南部','嘉義縣','嘉義縣社區心理衛生中心','05-362-1150'],
+ ['南部','臺南市','臺南市政府衛生局','06-335-2982'],['南部','高雄市','高雄市政府衛生局','07-716-1925'],
+ ['南部','屏東縣','屏東縣政府衛生局','08-737-0123'],['南部','澎湖縣','澎湖縣政府衛生局','06-927-5932'],
+ ['東部','宜蘭縣','宜蘭縣政府衛生局','03-936-7885'],['東部','花蓮縣','花蓮縣身心健康及成癮防治所','03-835-1885 分機 328'],
+ ['東部','臺東縣','臺東縣衛生局心理衛生中心','089-230-598 分機 517'],
+ ['離島','金門縣','金門縣衛生局','082-337-885'],['離島','連江縣','連江縣衛生局','0836-23122'],
+];
+let MH_ALL=false;
+function renderMH(){
+  const rows=MH.filter(r=>MH_ALL||r[0]===REGION);
+  $('mh-h').textContent=`各縣市社區心理衛生中心・心理諮詢專線（${MH_ALL?'全部縣市':REGION}）`;
+  $('mh-tbl').innerHTML='<thead><tr><th>縣市</th><th>單位</th><th>電話</th></tr></thead><tbody>'+
+    rows.map(r=>`<tr><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')+'</tbody>';
+  $('mh-all').textContent=MH_ALL?`只看${REGION}`:'顯示全部縣市';
+}
+$('mh-all').addEventListener('click',()=>{MH_ALL=!MH_ALL;renderMH();});
+
 const fmtT=s=>s?String(s).replace('T',' ').slice(0,16):'—';
 function renderFooter(){
   const up=(DATA&&(DATA.updated||{ncdr:DATA.generated,cdc:DATA.generated,climate:DATA.generated}))||{};
@@ -602,10 +685,10 @@ function renderFooter(){
     <div>審閱狀態：<span class="review">${esc(SITE.review)}</span></div>`;
 }
 
-function renderAll(){renderToday();renderCal();renderCDC();renderClimate();renderFooter();}
+function renderAll(){renderToday();renderCal();renderCDC();renderClimate();renderMH();renderFooter();}
 $('region').addEventListener('change',e=>{REGION=e.target.value;try{localStorage.setItem('jq-region',REGION);}catch(_){}renderAll();});
 
-renderJQ();renderSeason();renderFooter();
+renderJQ();renderSeason();renderMH();renderFooter();
 fetch('data.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
   DATA=j;
   // 標記天氣類型轉換與連續有雨日數，供過敏與情緒規則使用
