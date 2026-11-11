@@ -6,10 +6,13 @@
 
 | 檔案 | 用途 |
 |---|---|
-| `page.html` | 網頁本體（內容、樣式、程式）。要改文字或規則就改這個檔 |
+| `page.html` | 網頁本體（內容、樣式、程式）。要改文字或規則就改這個檔；改風險規則時要同步改 `risk_rules.py` |
 | `update_data.py` | 抓資料並產生 `site/`。只用 Python 標準函式庫 |
+| `risk_rules.py` | 風險規則的 Python 版（給伺服器端與 LINE 推播用），用 `check_risk_parity.py` 檢查與網頁一致 |
+| `line_daily.py` | 產生 `site/today.json` 與 LINE 每日訊息，見 `LINE推播說明.md` |
 | `site/index.html` | 由 `page.html` 自動包成的完整網頁，**不要手動改** |
 | `site/data.json` | 自動產生的資料 |
+| `site/today.json` | 自動產生的今日摘要（四個地區的風險與訊息文字） |
 | `審閱清單.md` | 給公衛／醫療同仁審閱的內容清單 |
 | `.github/workflows/update.yml` | GitHub Pages 自動更新與發布 |
 

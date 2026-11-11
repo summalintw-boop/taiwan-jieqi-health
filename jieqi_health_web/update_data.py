@@ -255,6 +255,12 @@ def main() -> int:
     (SITE / "data.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     build_site()
     print(f"wrote {SITE / 'data.json'} and index.html")
+    try:  # 今日摘要（四個地區的風險與 LINE 訊息文字），失敗不影響網站
+        import line_daily
+        line_daily.write_today(data, now)
+        print(f"wrote {SITE / 'today.json'}")
+    except Exception as e:
+        print(f"[fail] today.json: {e}", file=sys.stderr)
     return 0
 
 

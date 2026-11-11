@@ -4,9 +4,14 @@ name: update-and-deploy
 
 on:
   schedule:
-    - cron: "10 22 * * *"   # UTC 22:10 = 臺灣 06:10
+    - cron: "10 22 * * *"   # UTC 22:10 = 臺灣 06:10（這一次會送 LINE 推播）
     - cron: "10 6 * * *"    # UTC 06:10 = 臺灣 14:10
   workflow_dispatch:
+    inputs:
+      send_line:
+        description: "手動執行時也送 LINE 推播（需先設定 LINE_CHANNEL_ACCESS_TOKEN）"
+        type: boolean
+        default: false
   push:
     branches: [main]
 
@@ -32,12 +37,22 @@ jobs:
         with:
           python-version: "3.12"
       - name: 更新資料
-        run: python update_data.py --only ncdr,climate,temp   # 疾管署由臺灣的電腦每週補抓（local_cdc_update.ps1）
+        run: python update_data.py --only ncdr,climate,temp   # 疾管署由臺灣的電腦每週補抓（local_cdc_update.ps1）；同時產生 site/today.json
+      - name: LINE 每日推播
+        # 只在早上 06:10 那次排程（或手動勾選 send_line）執行；沒有設定 token 時只印出訊息、不推播
+        if: github.event.schedule == '10 22 * * *' || inputs.send_line
+        continue-on-error: true
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_TO: ${{ secrets.LINE_TO }}
+          LINE_MODE: ${{ vars.LINE_MODE }}
+          LINE_REGION: ${{ vars.LINE_REGION }}
+        run: python line_daily.py --send --no-write
       - name: 保存資料快照
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add site/data.json site/index.html
+          git add site/data.json site/index.html site/today.json
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%dT%H:%MZ)"
           git push || true
       - uses: actions/configure-pages@v5
