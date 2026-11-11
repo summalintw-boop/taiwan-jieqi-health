@@ -1,4 +1,4 @@
-# 在臺灣的電腦上補抓疾管署開放資料，並推送到 GitHub
+﻿# 在臺灣的電腦上補抓疾管署開放資料，並推送到 GitHub
 # GitHub 的伺服器在美國，連不到 od.cdc.gov.tw，所以疾管署資料由這台電腦每週抓一次。
 # 推送後 GitHub Actions 會自動重新發布網站。
 $ErrorActionPreference = 'Stop'
