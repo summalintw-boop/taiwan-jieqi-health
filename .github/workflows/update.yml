@@ -1,0 +1,55 @@
+# 每天臺灣時間 06:10 與 14:10 更新資料並發布到 GitHub Pages
+# 網站檔案放在 repository 的 jieqi_health_web/ 資料夾
+name: update-and-deploy
+
+on:
+  schedule:
+    - cron: "10 22 * * *"   # UTC 22:10 = 臺灣 06:10
+    - cron: "10 6 * * *"    # UTC 06:10 = 臺灣 14:10
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: jieqi_health_web
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 更新資料
+        run: python update_data.py || echo "部分來源失敗，沿用上一版資料"
+      - name: 保存資料快照
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add site/data.json site/index.html
+          git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push || true
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: jieqi_health_web/site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
