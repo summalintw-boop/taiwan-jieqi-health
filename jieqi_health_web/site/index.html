@@ -245,6 +245,8 @@ footer a{color:var(--accent)}
       <li><a href="https://data.gov.tw/" target="_blank" rel="noopener">疾病管制署開放資料</a>：健保門診及住院就診人次（類流感、COVID-19、腹瀉、腸病毒），od.cdc.gov.tw</li>
       <li><a href="https://www.cwa.gov.tw/V8/C/C/Statistics/monthlymean.html" target="_blank" rel="noopener">中央氣象署 氣候月平均</a>（1991–2020 平年值）</li>
       <li>低溫健康效應：Gasparrini A. et al. (2015) <i>Lancet</i> 386:369–375</li>
+      <li>高溫與心理健康：Liu J. et al. (2021) <i>Environment International</i> 153:106533（系統性回顧與統合分析）</li>
+      <li>心理支持：衛生福利部安心專線 1925（24 小時免付費）</li>
       <li>天氣類型的白話說明與疾病對應由本平台依氣象與公共衛生常識撰寫，不是 NCDR 的官方定義。節氣日期以天文公式計算。</li>
     </ul>
     <p>本頁僅供公共衛生資訊參考，不能取代醫療診斷。急症請撥 119。</p>
@@ -310,7 +312,8 @@ const T=[
 const G={
   old:'65 歲以上長者', solo:'獨居長者', cvd:'高血壓、心臟病、中風病史', dm:'糖尿病', ckd:'慢性腎病、洗腎',
   copd:'COPD、氣喘', baby:'嬰幼兒', ltc:'長照機構住民', unvax:'未接種疫苗者', outdoor:'戶外工作者',
-  mob:'行動不便、失能者', home:'街友', vent:'使用居家呼吸器、製氧機者', oldhouse:'老舊公寓住戶', skin:'異位性皮膚炎', imm:'免疫力低下者', care:'照顧孫輩的長者', preg:'孕婦'
+  mob:'行動不便、失能者', home:'街友', vent:'使用居家呼吸器、製氧機者', oldhouse:'老舊公寓住戶', skin:'異位性皮膚炎', imm:'免疫力低下者', care:'照顧孫輩的長者', preg:'孕婦',
+  allergy:'過敏性鼻炎、過敏體質', urt:'曾有蕁麻疹者', bed:'臥床、長期穿尿布者', mental:'有憂鬱、焦慮或失眠病史者', dementia:'失智症長者', carer:'家庭照顧者', disaster:'受災或撤離者'
 };
 function parseWx(d){
   const t=(d.type||'')+' '+(d.season||''), m=+d.date.slice(5,7);
@@ -362,7 +365,27 @@ function risks(d,region){
     add('co',f.cold?3:2,'一氧化碳中毒','天冷門窗緊閉、熱水器裝在室內或加蓋陽台，燃燒不完全產生一氧化碳。',
       ['oldhouse','solo','old'],'熱水器裝在室外、洗澡時開窗；頭痛頭暈想吐立即開窗離開；不要燒炭取暖。');
   if(f.dry&&cool&&(f.ne||f.n||f.cold))
-    add('skin',1,'皮膚乾癢','空氣乾燥加上洗熱水澡，皮膚屏障受損。',['old','skin'],'洗澡水不要太燙，洗完擦乳液。');
+    add('skin',1,'皮膚乾癢・乾燥型濕疹','空氣乾燥加上洗熱水澡，皮膚屏障受損；長者皮脂分泌少，小腿、背部容易乾裂發癢，抓破後可能感染。',
+      ['old','skin','dm'],'洗澡水不超過 40°C、少用肥皂，洗完 3 分鐘內擦乳液；剪短指甲避免抓破；癢到影響睡眠或出現滲液就醫。');
+  // 過敏性鼻炎・蕁麻疹：日夜溫差大、天氣類型轉換、轉季月份
+  const swing=cool&&f.dry&&(f.ne||f.n), turn=!!d._turn, shoulder=[3,4,10,11].includes(f.m);
+  if(swing||turn||shoulder)
+    add('allergy',(swing||turn)&&shoulder?2:1,'過敏性鼻炎・蕁麻疹','日夜溫差大或天氣型態轉換時，鼻黏膜與皮膚對冷熱刺激敏感，容易打噴嚏、鼻塞，或出現冷熱引起的蕁麻疹。'+(turn?'這天的天氣類型和前一天不同。':''),
+      ['allergy','urt','copd','skin'],'早晚出門戴口罩、圍巾保暖口鼻；依醫囑使用鼻噴劑或抗組織胺；蕁麻疹合併呼吸困難、嘴唇腫立即就醫。');
+  // 濕疹・汗疹・黴菌：高溫高濕
+  if(['su','me'].includes(f.season)&&(f.wet||f.s||f.sw||f.high||f.conv||f.season==='me'))
+    add('eczema',f.season==='me'||f.wet?2:1,'濕疹・汗疹・皮膚黴菌','高溫潮濕讓汗水悶在皮膚皺摺處，容易長汗疹、濕疹，也利於黴菌（股癬、念珠菌）孳生；臥床與穿尿布的長者最常見。',
+      ['bed','dm','old','baby'],'衣物選透氣吸汗材質，汗濕就換；皮膚皺摺處保持乾爽；照顧臥床者每 2 小時翻身並檢查尿布區皮膚；紅疹擴大或化膿就醫。');
+  // 心理健康：連續陰雨、冬季日照短、高溫、颱風災後
+  const streak=d._streak||0, hot=['su','me'].includes(f.season)&&(f.high||f.season==='su'&&f.dry);
+  if(streak>=3||f.ty||hot||(wintery&&(f.ne||f.n||f.cold)))
+    add('mind',f.ty||streak>=5||hot?2:1,'情緒・睡眠・精神症狀',
+      f.ty?'颱風與災害帶來的財物損失、停電與撤離，容易引起焦慮、失眠與壓力反應，原有精神疾病也可能惡化。':
+      hot?'高溫會干擾睡眠、增加煩躁；研究顯示炎熱天氣時，精神疾病相關的急診與就醫增加。':
+      streak>=3?`已連續 ${streak} 天有雨，日照少、外出活動減少，容易情緒低落、焦慮或睡不好。`:
+      '冬季日照短、天冷外出少，獨居長者社交減少，容易情緒低落、失眠；年節前後孤獨感也較明顯。',
+      f.ty?['disaster','mental','old','carer']:['mental','solo','dementia','carer'],
+      '維持規律作息與白天活動，多曬太陽、與親友聯絡；照顧者留意長者食慾、睡眠與言語的變化；心情低落或有輕生念頭，撥打安心專線 1925（24 小時免付費）。');
   if(['su','me'].includes(f.season)&&(f.high||f.s||f.conv||f.e||(f.sw&&!f.wet)||(f.season==='su'&&f.dry)))
     add('heat',f.high||f.season==='su'?3:2,'熱傷害','高溫潮濕使身體散熱困難；長者體溫調節較差，在室內不開冷氣也可能中暑。',
       ['old','solo','cvd','ckd','outdoor','baby'],'10–14 時避免戶外活動，少量多次喝水；室內開冷氣或電扇；體溫高、意識不清立即降溫並打 119。');
@@ -386,7 +409,7 @@ function risks(d,region){
     out.push({k:'calm',lv:1,name:'天氣平穩',why:'這個天氣類型沒有明顯的健康風險訊號。',groups:[G.old],act:'維持規律作息與慢性病用藥。'});
   return out.sort((a,b)=>b.lv-a.lv);
 }
-const SHORT={cvd:'心血管',resp:'呼吸道',air:'空品',wetcold:'濕冷',co:'一氧化碳',skin:'乾燥',heat:'熱傷害',flood:'災後感染',dengue:'登革熱',typhoon:'颱風',gi:'腸胃',ev:'腸病毒',calm:'平穩'};
+const SHORT={cvd:'心血管',resp:'呼吸道',air:'空品',wetcold:'濕冷',co:'一氧化碳',skin:'皮膚乾癢',allergy:'過敏',eczema:'濕疹',mind:'情緒',heat:'熱傷害',flood:'災後感染',dengue:'登革熱',typhoon:'颱風',gi:'腸胃',ev:'腸病毒',calm:'平穩'};
 const LVN=['','需留意','風險中','風險高'];
 
 // ===== 季節性（月相對等級）=====
@@ -394,7 +417,9 @@ const SEA=[
  ['流感・新冠・呼吸道',[3,3,2,1,1,1,1,1,1,2,2,3]],['心血管・中風（低溫）',[3,3,2,1,0,0,1,1,0,1,2,3]],
  ['熱傷害',[0,0,0,1,2,3,3,3,2,1,0,0]],['登革熱',[0,0,0,0,1,1,2,3,3,3,2,1]],['腸病毒',[0,0,1,2,3,3,2,1,2,2,1,0]],
  ['腸胃道感染',[2,2,1,1,2,3,3,3,2,1,2,2]],['一氧化碳中毒',[3,3,1,0,0,0,0,0,0,0,1,3]],
- ['過敏・氣喘・COPD',[2,2,3,2,1,0,0,0,1,2,2,2]],['颱風豪雨後感染',[0,0,0,0,1,2,2,3,3,1,0,0]]];
+ ['過敏・氣喘・COPD',[2,2,3,2,1,0,0,0,1,2,2,2]],['颱風豪雨後感染',[0,0,0,0,1,2,2,3,3,1,0,0]],
+ ['過敏性鼻炎・蕁麻疹（轉季溫差）',[1,1,3,2,1,0,0,0,1,2,3,2]],['濕疹・汗疹・皮膚黴菌',[0,0,0,1,2,3,3,3,2,1,0,0]],
+ ['皮膚乾癢（乾燥）',[3,3,2,1,0,0,0,0,0,1,2,3]],['情緒・睡眠',[2,2,1,1,1,1,2,2,1,1,1,2]]];
 
 const STN={北部:['臺北'],中部:['臺中'],南部:['高雄'],東部:['宜蘭','花蓮']};
 const CDCK=[['ili','類流感'],['covid','COVID-19'],['diarrhea','腹瀉'],['ev','腸病毒']];
@@ -568,6 +593,8 @@ $('region').addEventListener('change',e=>{REGION=e.target.value;try{localStorage
 renderJQ();renderSeason();renderFooter();
 fetch('data.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(j=>{
   DATA=j;
+  // 標記天氣類型轉換與連續有雨日數，供過敏與情緒規則使用
+  if(j.ncdr&&j.ncdr.days){let s=0;j.ncdr.days.forEach((d,i)=>{const p=j.ncdr.days[i-1];d._turn=!!(p&&p.type!==d.type);s=d.rain?s+1:0;d._streak=s;});}
   // 只有資料真的過舊才提醒：NCDR 日曆超過 2 天、疾管署週資料超過 14 天
   const up=j.updated||{ncdr:j.generated,cdc:j.generated,climate:j.generated};
   const ageD=s=>s?(Date.now()-new Date(s).getTime())/86400000:Infinity;
