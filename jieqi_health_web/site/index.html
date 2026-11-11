@@ -520,15 +520,16 @@ $('cal').addEventListener('click',e=>{const b=e.target.closest('.day[data-d]');i
   if(window.matchMedia('(max-width:960px)').matches)$('detail').scrollIntoView({behavior:'smooth',block:'start'});});
 
 // ===== 節氣輪盤 =====
-const CX=170,CY=170,RO=158,RI=104, ang=l=>(-90+((l-315+360)%360))*rad, pt=(a,r)=>[CX+r*Math.cos(a),CY+r*Math.sin(a)];
+const CX=170,CY=170,RO=152,RI=100, ang=l=>(-90+((l-315+360)%360))*rad, pt=(a,r)=>[CX+r*Math.cos(a),CY+r*Math.sin(a)];
 function renderJQ(){
   const ty=todayYMD(), c=termAt(ty), sel=PICK==null?c.i:PICK, t=T[sel];
   let h='';
   for(let i=0;i<24;i++){const a1=ang(i*15),a2=ang(i*15+15),[x1,y1]=pt(a1,RO),[x2,y2]=pt(a2,RO),[x3,y3]=pt(a2,RI),[x4,y4]=pt(a1,RI),on=i===sel;
-    h+=`<path class="seg" tabindex="0" role="button" aria-label="${T[i].n}" data-i="${i}" d="M${x1},${y1} A${RO},${RO} 0 0 1 ${x2},${y2} L${x3},${y3} A${RI},${RI} 0 0 0 ${x4},${y4}Z" fill="var(--${T[i].s})" fill-opacity="${on?1:i===c.i?.5:.2}" stroke="var(--bg)" stroke-width="2"/>`;
-    const[tx,ty2]=pt(ang(i*15+7.5),(RO+RI)/2);h+=`<text x="${tx}" y="${ty2+4}" text-anchor="middle" fill="${on?'#fff':'var(--ink)'}">${T[i].n}</text>`;}
+    h+=`<path class="seg" tabindex="0" role="button" aria-label="${T[i].n}" data-i="${i}" d="M${x1},${y1} A${RO},${RO} 0 0 1 ${x2},${y2} L${x3},${y3} A${RI},${RI} 0 0 0 ${x4},${y4}Z" fill="${i===c.i?'var(--accent)':on?'var(--accent-soft)':'var(--surface)'}" stroke="${on&&i!==c.i?'var(--accent)':'var(--line)'}" stroke-width="${on&&i!==c.i?2:1}"/>`;
+    {const[r1,s1]=pt(a1,RO+7),[r2,s2]=pt(a2,RO+7);h+=`<path d="M${r1},${s1} A${RO+7},${RO+7} 0 0 1 ${r2},${s2}" fill="none" stroke="var(--${T[i].s})" stroke-width="5" stroke-opacity=".55"/>`;}
+    const[tx,ty2]=pt(ang(i*15+7.5),(RO+RI)/2);h+=`<text x="${tx}" y="${ty2+4}" text-anchor="middle" fill="${i===c.i?'#fff':'var(--ink)'}">${T[i].n}</text>`;}
   const[px,py]=pt(ang(c.lon),RI-6), d=tw(c.jd);
-  h+=`<line x1="${CX}" y1="${CY}" x2="${px}" y2="${py}" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="${px}" cy="${py}" r="6" fill="var(--${T[c.i].s})" stroke="var(--bg)" stroke-width="2"/><circle cx="${CX}" cy="${CY}" r="4" fill="var(--ink)"/>`;
+  h+=`<line x1="${CX}" y1="${CY}" x2="${px}" y2="${py}" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="${px}" cy="${py}" r="6" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/><circle cx="${CX}" cy="${CY}" r="4" fill="var(--ink)"/>`;
   h+=`<text x="${CX}" y="${CY+34}" text-anchor="middle" fill="var(--ink)" style="font-family:var(--f-mono);font-size:20px;font-weight:500">${d.m}/${d.d}</text><text x="${CX}" y="${CY+52}" text-anchor="middle" fill="var(--muted)" style="font-family:var(--f-mono);font-size:11px;font-weight:400">黃經 ${c.lon.toFixed(1)}°</text>`;
   $('wheel').innerHTML=h;
   const sjd=sel===c.i?c.st:solve(sel*15,c.jd+((sel*15-c.lon+360)%360)*365.2422/360), ejd=solve(((sel+1)%24)*15,sjd+15.2), sd=tw(sjd), ed=tw(ejd-1);
