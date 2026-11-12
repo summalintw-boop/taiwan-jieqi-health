@@ -33,12 +33,33 @@ try {
     & $git diff --cached --quiet
     if ($LASTEXITCODE -eq 0) { Log '疾管署資料沒有變動，不需推送'; exit 0 }
     & $git commit -m "data(cdc): 本機補抓疾管署資料 $(Get-Date -Format 'yyyy-MM-dd HH:mm')" --quiet
-    & $git push --quiet
-    if ($LASTEXITCODE -ne 0) {
-        & $git pull --rebase --quiet
+    # 推送；若 GitHub Actions 同時也推了 data.json（例如每天 06:10、14:10 的更新），
+    # 會在 rebase 時衝突：改用 GitHub 上的 data.json，再把疾管署資料重新併進去。
+    $pushed = $false
+    for ($k = 1; $k -le 3 -and -not $pushed; $k++) {
         & $git push --quiet
-        if ($LASTEXITCODE -ne 0) { throw "git push 失敗" }
+        if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+        Log "推送被拒（第 $k 次），先同步 GitHub 上的新版本"
+        & $git pull --rebase --quiet
+        if ($LASTEXITCODE -ne 0) {
+            $conf = @(& $git diff --name-only --diff-filter=U)
+            $other = @($conf | Where-Object { $_ -notin @('jieqi_health_web/site/data.json', 'jieqi_health_web/site/index.html') })
+            if ($conf.Count -eq 0 -or $other.Count -gt 0) {
+                & $git rebase --abort
+                throw "同步時發生無法自動處理的衝突：$($conf -join ', ')"
+            }
+            & $git checkout --ours -- $conf
+            Set-Location (Join-Path $repo 'jieqi_health_web')
+            & python -I update_data.py --only cdc
+            Set-Location $repo
+            & $git add jieqi_health_web/site/data.json jieqi_health_web/site/index.html
+            $env:GIT_EDITOR = 'true'
+            & $git rebase --continue
+            if ($LASTEXITCODE -ne 0) { & $git rebase --abort; throw "rebase 無法完成" }
+            Log '已改用 GitHub 上的 data.json 並重新併入疾管署資料'
+        }
     }
+    if (-not $pushed) { throw "git push 失敗" }
     Log "已推送疾管署資料$(if ($seasOk) { '（含歷史季節性）' } else { '（歷史季節性未更新）' })"
 }
 catch {
