@@ -1,6 +1,6 @@
 ﻿# 在臺灣的電腦上補抓疾管署開放資料，並推送到 GitHub
 # GitHub 的伺服器在美國，連不到 od.cdc.gov.tw，所以疾管署資料由這台電腦每週抓一次。
-# 同時重算第四版的 24 節氣歷史季節性（cdc_seasonal.py）。
+# 同時重算健康節令曆的 24 節氣歷史季節性（cdc_seasonal.py）。
 # 推送後 GitHub Actions 會自動重新發布網站。
 $ErrorActionPreference = 'Stop'
 $git  = 'C:\Program Files\Git\cmd\git.exe'
@@ -19,7 +19,7 @@ try {
     $j = Get-Content -Raw -Encoding UTF8 'site\data.json' | ConvertFrom-Json
     if ($j.errors.Count -gt 0) { throw "疾管署資料抓取失敗：$($j.errors -join '; ')" }
 
-    # 第四版：重新下載多年期 CSV，重算 24 節氣歷史季節性與報告（失敗不影響上面的資料更新）
+    # 健康節令曆：重新下載多年期 CSV，重算 24 節氣歷史季節性與報告（失敗不影響上面的資料更新）
     # 注意：不要加 -I，cdc_seasonal.py 需要讀同資料夾的 term_normals.py、update_data.py
     $seasOk = $true
     try {
