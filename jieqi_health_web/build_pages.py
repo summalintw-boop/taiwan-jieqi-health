@@ -1,4 +1,4 @@
-"""產生今日健康提醒（site/v2/）與健康節令曆（site/v3/）；site/v4/ 只是轉址到 v3（原「節令曆＋疾管署歷史」已併入）
+"""產生今日健康提醒（site/v2/）與節令健康曆（site/v3/）；site/v4/ 只是轉址到 v3（原「節令曆＋疾管署歷史」已併入）
 
 - 風險規則：從 page.html 擷取「天文」到「繪製：今日摘要」之間的程式，三個版本規則一致。
 - 共用元件：parts/shared_ui.js（官方出處的就醫警訊、原因說明）、parts/bp.*（血壓追蹤）。
@@ -30,8 +30,8 @@ def redirect(out_dir: str, to: str) -> None:
     """舊網址轉到新網址（GitHub Pages 不能設伺服器轉址，用 meta refresh）"""
     doc = ("<!doctype html>\n<html lang=\"zh-Hant-TW\">\n<head>\n<meta charset=\"utf-8\">\n"
            f"<meta http-equiv=\"refresh\" content=\"0; url={to}\">\n<link rel=\"canonical\" href=\"{to}\">\n"
-           "<title>健康節令曆</title>\n</head>\n<body>\n"
-           f"<p>「節令曆＋疾管署歷史」已併入<a href=\"{to}\">健康節令曆</a>，正在轉到新網址…</p>\n</body>\n</html>\n")
+           "<title>節令健康曆</title>\n</head>\n<body>\n"
+           f"<p>「節令曆＋疾管署歷史」已併入<a href=\"{to}\">節令健康曆</a>，正在轉到新網址…</p>\n</body>\n</html>\n")
     out = HERE / "site" / out_dir / "index.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(doc, encoding="utf-8")
