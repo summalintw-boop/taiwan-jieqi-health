@@ -49,3 +49,4 @@ if __name__ == "__main__":
     sync_main_sources()
     build("page_v2.html", "v2")
     build("page_v3.html", "v3")
+    build("page_v4.html", "v4")
