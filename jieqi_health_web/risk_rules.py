@@ -154,6 +154,16 @@ def mark_turns(days: list) -> None:
         d["_turn"] = bool(p and p.get("type") != d.get("type"))
 
 
+# @@HIST_BEGIN（由 sync_hist_rules.py 產生，請勿手改）
+# 疾管署健保門診歷史季節性分級（全國、全年齡，統計產生 2026-11-12 09:30），與 page.html 的 HIST 相同
+HIST = {"ili": "100000000000000001233232", "covid": "000233332000000000000200", "diarrhea": "210000000011110000021233", "ev": "000123321123323332220000"}
+
+
+def hist_lv(k: str, ymd: str) -> int:
+    return int(HIST[k][term_at(ymd)["index"]])
+# @@HIST_END
+
+
 def risks(d: dict, region: str, data: dict) -> list:
     f = parse_wx(d)
     out: list = []
@@ -176,11 +186,18 @@ def risks(d: dict, region: str, data: dict) -> list:
         lv = 3 if (f["cold"] or cold10 or drop) else ((2 if (tp["mn"] <= 13 or wintery) else 1) if tp else (3 if wintery else 2))
         add("cvd", lv, "心血管・中風", "冷空氣使氣溫下降、日夜溫差加大" + tt + "，血管收縮、血壓上升；低溫效應會延遲數天，冷空氣過後一週仍要留意。",
             ["old", "cvd", "dm", "ckd", "solo"], "早晚與清晨出門保暖頭頸手腳；每天量血壓、依醫囑使用藥物；「微笑」臉部不對稱、「舉手」一手垂下、「說你好」講不清楚，任一情形儘快撥 119 並記下發生時間（國健署）。")
-    flu_season = m in (11, 12, 1, 2)
+    # 流感季、新冠高峰：依疾管署 2016–2025 年健保門診歷史季節性（HIST），與 page.html 相同
+    flu_season = hist_lv("ili", d["date"]) >= 2
+    cov_peak = hist_lv("covid", d["date"]) >= 3
+    resp_act = "接種流感、新冠、肺炎鏈球菌疫苗；有症狀戴口罩在家休息；出現呼吸困難、呼吸急促、發紺、血痰、胸痛、意識改變或低血壓等流感危險徵兆，儘速就醫（疾管署）。"
+    cov_txt = "近年（2022–2025 年，只有 4 年資料）新冠就診高峰多在小滿到小暑；"
     if f["ne"] or f["n"] or f["cold"] or (f["wet"] and cool) or flu_season:
         add("resp", 3 if (wintery or f["cold"] or (tp and tp["mn"] <= 12)) else 2, "呼吸道感染",
-            ("現在是流感流行期（約 11 月到隔年 2 月）；" if flu_season else "") + "涼冷天氣使人待在室內、門窗緊閉，流感、新冠、RSV 與肺炎鏈球菌容易傳播；長者重症比例最高。",
-            ["old", "baby", "copd", "ltc", "unvax"], "接種流感、新冠、肺炎鏈球菌疫苗；有症狀戴口罩在家休息；出現呼吸困難、呼吸急促、發紺、血痰、胸痛、意識改變或低血壓等流感危險徵兆，儘速就醫（疾管署）。")
+            ("疾管署 2016–2025 年資料顯示，這個節氣類流感就診量通常明顯高於全年平均（高峰約在冬至到驚蟄）；" if flu_season else "")
+            + (cov_txt if cov_peak else "") + "涼冷天氣使人待在室內、門窗緊閉，流感、新冠、RSV 與肺炎鏈球菌容易傳播；長者重症比例最高。",
+            ["old", "baby", "copd", "ltc", "unvax"], resp_act)
+    elif cov_peak:
+        add("resp", 1, "呼吸道感染", cov_txt + "人多的室內空間容易傳播；長者重症比例最高。", ["old", "copd", "ltc", "unvax"], resp_act)
     if (f["ne"] or f["n"]) and f["dry"] and cool:
         add("air", 1, "空氣品質・氣喘 COPD", "東北季風期間中南部位於背風側，風弱時 PM2.5 等汙染物累積；乾冷空氣也會刺激呼吸道。",
             ["copd", "cvd", "old", "baby"], "查看空品 AQI，超過 100 減少戶外活動並戴口罩；依醫囑使用藥物。")
@@ -221,15 +238,22 @@ def risks(d: dict, region: str, data: dict) -> list:
     if f["ty"]:
         add("typhoon", 3, "颱風外傷・停電", "強風豪雨造成外傷、停電與交通中斷，維生器材與洗腎、透析治療可能受影響。",
             ["vent", "ckd", "mob", "ltc"], "備妥 3 天份藥物、行動電源與備援電源；依通知提前撤離。")
-    if f["season"] in ("me", "su"):
-        add("gi", 2 if f["season"] == "su" else 1, "食物中毒・腸胃炎", "高溫潮濕利於細菌孳生，食物在室溫下放置過久易引起中毒。",
+    # 腹瀉、腸病毒：依疾管署 2016–2025 年健保門診歷史季節性（HIST）
+    hd = hist_lv("diarrhea", d["date"])
+    he = hist_lv("ev", d["date"])
+    if hd >= 1:
+        add("gi", 2 if hd >= 2 else 1, "腹瀉・腸胃炎",
+            "疾管署 2016–2025 年資料顯示，這個節氣腹瀉就診量通常" + ("明顯高於" if hd >= 2 else "略高於")
+            + "全年平均（高峰約在小寒到春分，冬春季常有諾羅病毒群聚）；長照機構與學校容易群聚。",
+            ["ltc", "baby", "old"], "如廁後、備餐前用肥皂洗手（酒精效果有限）；貝類煮熟；嘔吐物用漂白水處理；腹瀉時補充水分電解質。")
+    elif f["season"] in ("me", "su"):
+        add("gi", 1, "食物保存・腸胃炎", "高溫潮濕利於細菌孳生，食物在室溫下放置過久容易引起食物中毒（這是食品衛生提醒；歷年夏季腹瀉就診量並未高於全年平均）。",
             ["ltc", "baby", "old"], "生熟食分開、剩菜盡快冷藏；腹瀉時補充水分電解質。")
-    elif wintery or m == 11 or m == 3:
-        add("gi", 1, "諾羅病毒", "冬季諾羅病毒流行，長照機構與學校容易群聚。", ["ltc", "baby", "old"],
-            "貝類煮熟；如廁後用肥皂洗手（酒精效果有限）；嘔吐物用漂白水處理。")
-    if 4 <= m <= 7:
-        add("ev", 2 if 5 <= m <= 6 else 1, "腸病毒", "每年 5–6 月為高峰，祖父母照顧孫輩時容易互相傳染。", ["baby", "care", "preg"],
-            "照顧嬰幼兒前後用肥皂洗手；孫輩有手足口症狀時避免共用餐具。")
+    if he >= 1:
+        add("ev", 2 if he >= 2 else 1, "腸病毒",
+            "疾管署 2016–2025 年資料顯示，這個節氣腸病毒就診量通常" + ("明顯高於" if he >= 2 else "略高於")
+            + "全年平均（一年兩個高峰：約小滿到小暑、處暑到小寒）；祖父母照顧孫輩時容易互相傳染。",
+            ["baby", "care", "preg"], "照顧嬰幼兒前後用肥皂洗手；孫輩有手足口症狀時避免共用餐具。")
     if not out:
         out.append({"k": "calm", "lv": 1, "name": "天氣平穩", "why": "這個天氣類型沒有明顯的健康風險訊號。", "groups": [G["old"]],
                     "act": "維持規律作息，依醫囑使用藥物。"})

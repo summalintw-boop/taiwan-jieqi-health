@@ -22,7 +22,7 @@ function reasonOf(d){
     if(t.rng>=8)r.push(`日夜溫差 ${t.rng.toFixed(0)}°C，早晚加衣`);
   }
   if(d.rain)r.push(f.ne?'東北季風帶來降雨，濕冷路滑':'有雨，路面濕滑');
-  if([11,12,1,2].includes(f.m))r.push('流感流行期');
+  if(histLv('ili',d.date)>=2)r.push('流感就診高峰期（疾管署歷年資料）');
   if(!r.length)r.push('天氣變化不大');
   return r.slice(0,2).join('；');
 }

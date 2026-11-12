@@ -26,6 +26,11 @@ try {
         & python cdc_seasonal.py --download
         if ($LASTEXITCODE -ne 0) { throw "結束代碼 $LASTEXITCODE" }
     } catch { $seasOk = $false; Log "警告：歷史季節性重算失敗，沿用上一版：$_" }
+    # 健康提醒規則（HIST）是否仍與最新統計一致；不一致只記錄，不自動改規則（改規則需人工確認）
+    if ($seasOk) {
+        & python sync_hist_rules.py --check | Out-Null
+        if ($LASTEXITCODE -ne 0) { Log '注意：健康提醒規則與最新歷史統計不一致，請執行 python sync_hist_rules.py --check 查看，確認後再執行 python sync_hist_rules.py 更新' }
+    }
 
     Set-Location $repo
     & $git add jieqi_health_web/site/data.json jieqi_health_web/site/index.html

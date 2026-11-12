@@ -210,7 +210,7 @@ footer ul{padding-left:1.2em;margin:6px 0}
   <div class="yd" id="yr-d" hidden></div>
   <div class="sub" id="yr-leg" style="margin-top:6px"></div>
   <details class="man"><summary>其他季節提醒（人工整理，沒有疾管署週資料可以驗證）</summary>
-    <p class="sub">下列項目原本也在年度表中，等級是依文獻與月份人工設定，<b>不是統計結果</b>，保留供參考並列入專家審閱。流感、新冠、腸病毒、腸胃道感染的人工等級已由上方疾管署統計取代。</p>
+    <p class="sub">下列項目原本也在年度表中，等級是依文獻與月份人工設定，<b>不是統計結果</b>，保留供參考並列入專家審閱。類流感・呼吸道、腸病毒、腸胃道感染三列改由上方疾管署統計呈現。</p>
     <div class="yrwrap"><table class="yr" id="yr-man"></table></div>
   </details>
 
@@ -384,7 +384,7 @@ function renderYear(){
   } else h+='<tr class="sec"><td colspan="25">疾管署歷史季節性資料讀取中…</td></tr>';
   $('yr').innerHTML=h+'</tbody>';
   $('yr-leg').innerHTML=SEAS?`分級（本平台自訂，非官方）：${SEAS.thresholds.map(t=>`<span class="hl h${t.lv}">${t.label}</span> ${t.lv===0?'&lt;1.00':`≥${t.min.toFixed(2)}`}`).join('　')}　數字加虛線底線：各年方向不一（高於與低於當年平均的年份都超過 30%）`:'';
-  const REPL=['流感・新冠・呼吸道','腸病毒','腸胃道感染'];
+  const REPL=['類流感・呼吸道','腸病毒','腸胃道感染（腹瀉）'];
   let m='<thead><tr><th>項目</th>'+cols.map(x=>`<th class="${x.i===c.i?'cur':''}">${T[x.i].n}</th>`).join('')+'</tr></thead><tbody>';
   SEA.filter(([n])=>!REPL.includes(n)).forEach(([n,a])=>{m+=`<tr><td>${n}</td>`+cols.map(x=>{const v=a[x.m-1];return `<td class="${x.i===c.i?'cur':''}"><span class="lvc v${v}">${lvT[v]}</span></td>`;}).join('')+'</tr>';});
   $('yr-man').innerHTML=m+'</tbody>';

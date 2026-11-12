@@ -456,7 +456,9 @@ def write_rules(R):
     sea, tnotes = manual_rules()
     mm = {i: mid_month(i) for i in range(24)}
     order = [(LISCHUN + j) % 24 for j in range(24)]
-    L = ["# 規則檢核報告：原本人工月份規則 vs 疾管署歷史節氣季節性", "",
+    L = ["# 規則檢核報告：現行健康提醒內容 vs 疾管署歷史節氣季節性", "",
+         "2026-11-12 起，每日提醒、年度表與節氣說明中的類流感、新冠、腹瀉、腸病毒內容改依疾管署歷史季節性；"
+         "修正前的檢核結果保存在「規則檢核報告_修正前_20261112.md」。", "",
          f"產生時間：{dt.datetime.now():%Y-%m-%d %H:%M}（程式：cdc_seasonal.py）", "",
          "比較基準：全國、全年齡、所有納入節令年的平均相對強度（≥1.00＝高於當年平均；≥1.10＝明顯偏高）。",
          "人工規則的月份依「節氣中點所在月份」換算成節氣（與第三版網頁年度表相同）。", "",
@@ -466,8 +468,8 @@ def write_rules(R):
     def ri(k, i, age="all"):
         return R[k]["全國"][age]["main"]["terms"][i]["ri"]
 
-    def compare(title, k, flagged, note):
-        hi = [i for i in order if ri(k, i) >= 1.10]
+    def compare(title, k, flagged, note, hi_th=1.10):
+        hi = [i for i in order if ri(k, i) >= hi_th]
         above = [i for i in order if ri(k, i) >= 1.0]
         fl = [i for i in order if flagged(i)]
         tp = [i for i in fl if ri(k, i) >= 1.0]
@@ -482,34 +484,45 @@ def write_rules(R):
         L.extend([f"### {title}", "", f"- 人工規則：{note}",
                   f"- 規則標示的節氣（{len(fl)} 個）：{'、'.join(NAMES[i] for i in fl) or '無'}",
                   f"- 歷史高於年平均（≥1.00）的節氣（{len(above)} 個）：{'、'.join(NAMES[i] for i in above)}",
-                  f"- 歷史明顯偏高（≥1.10）的節氣：{'、'.join(f'{NAMES[i]} {ri(k, i):.2f}' for i in hi) or '無'}",
+                  f"- 歷史偏高（≥{hi_th:.2f}）的節氣：{'、'.join(f'{NAMES[i]} {ri(k, i):.2f}' for i in hi) or '無'}",
                   f"- 規則標示但歷史低於年平均：{'、'.join(f'{NAMES[i]} {ri(k, i):.2f}' for i in fp) or '無'}",
-                  f"- 歷史明顯偏高但規則未標示：{'、'.join(f'{NAMES[i]} {ri(k, i):.2f}' for i in miss) or '無'}",
+                  f"- 歷史偏高（≥{hi_th:.2f}）但規則未標示：{'、'.join(f'{NAMES[i]} {ri(k, i):.2f}' for i in miss) or '無'}",
                   f"- **判定：{verdict}**", ""])
         return verdict
 
     summary = []
-    L += ["## A. 日曆每日提醒的月份規則（risks 函式）", ""]
-    v = compare("呼吸道感染：流感季（類流感）", "ili", lambda i: mm[i] in (11, 12, 1, 2),
-                "11 月到隔年 2 月視為流感流行期，每天都標「呼吸道感染」（另有寒流、東北季風等天氣條件）")
-    summary.append(("呼吸道感染（流感季 11–2 月）", "類流感", v))
-    v = compare("呼吸道感染：流感季（COVID-19）", "covid", lambda i: mm[i] in (11, 12, 1, 2),
-                "同上；呼吸道提醒文字包含新冠")
-    summary.append(("呼吸道感染（流感季 11–2 月）", "COVID-19", v))
-    v = compare("腸病毒", "ev", lambda i: 4 <= mm[i] <= 7, "4–7 月提醒腸病毒，5–6 月提高一級")
-    summary.append(("腸病毒（4–7 月）", "腸病毒", v))
-    v = compare("腸胃：食物中毒與諾羅病毒", "diarrhea",
-                lambda i: mm[i] in (5, 6, 7, 8, 9, 11, 12, 1, 2, 3),
-                "NCDR 季節為梅雨或夏季時提醒食物中毒・腸胃炎；冬季型天氣或 11、3 月提醒諾羅病毒。"
-                "（梅雨季、夏季依 NCDR 季節標示，此處以約 5–9 月近似；冬季以 12–2 月近似）")
-    summary.append(("腸胃（梅雨夏季＋冬季諾羅）", "腹瀉", v))
-    if ri("diarrhea", 0) is not None:
-        L.append("> 腸胃規則一年中約 10 個月都會觸發，幾乎無法區分季節；建議依下表歷史高峰收斂。\n")
+    import re
+    page = (HERE / "page.html").read_text(encoding="utf-8")
+    hm = re.search(r"const HIST=\{([^}]*)\}", page)
+    hist = dict(re.findall(r"(\w+):'(\d{24})'", hm.group(1))) if hm else {}
 
-    L += ["## B. 年度表人工等級（SEA，每月 0–3 級）", "",
-          "以 Spearman 等級相關比較 24 節氣的人工等級與歷史平均相對強度（1＝完全同向，0＝無關，負值＝反向）。", ""]
-    pairs = [("流感・新冠・呼吸道", "ili"), ("流感・新冠・呼吸道", "covid"), ("腸病毒", "ev"), ("腸胃道感染", "diarrhea")]
-    lvn = ["無", "低", "中", "高"]
+    def sens(k, i):
+        s = R[k]["全國"]["all"]["sens"]
+        return s["terms"][i]["ri"] if s else None
+
+    L += ["## A. 日曆每日提醒規則（risks 函式，網頁四個版本與 LINE 共用）", ""]
+    if not hist:
+        L.append("- page.html 找不到 HIST 常數，無法檢核。")
+    else:
+        L.append("規則改為讀取 HIST（各節氣歷史分級）；類流感、腹瀉、腸病毒的分級取「全部年份」與「排除 2020–2022」較高者，"
+                 "所以下列「歷史」欄同時列出兩種算法。\n")
+        for title, k, th, note in (
+                ("呼吸道感染：流感季（類流感）", "ili", 2, "類流感歷史分級 ≥2（明顯偏高）的節氣標示流感季，另有寒流、東北季風等天氣條件"),
+                ("呼吸道感染：新冠高峰（COVID-19）", "covid", 3, "COVID-19 歷史分級 3（≥1.25 倍）的節氣加註新冠高峰（只有 4 年資料）"),
+                ("腸病毒", "ev", 2, "腸病毒歷史分級 ≥2 提醒「風險中」、分級 1 提醒「需留意」"),
+                ("腸胃：腹瀉", "diarrhea", 2, "腹瀉歷史分級 ≥2 提醒「風險中」、分級 1 提醒「需留意」；夏季另有食品衛生提醒（需留意）")):
+            v = compare(title, k, lambda i, k=k, th=th: int(hist[k][i]) >= th, note, 1.25 if th == 3 else 1.10)
+            L.insert(len(L) - 2, "- 規則標示節氣的歷史倍數（全部年份／排除 2020–2022）："
+                     + "、".join(f"{NAMES[i]} {ri(k, i):.2f}" + (f"／{sens(k, i):.2f}" if sens(k, i) is not None else "")
+                                for i in order if int(hist[k][i]) >= th))
+            summary.append((f"每日提醒：{title}", SETS[k][1], v))
+
+    L += ["## B. 年度表（SEA，每月 0–3 級）", "",
+          "以 Spearman 等級相關比較 24 節氣的年度表等級與歷史平均相對強度（1＝完全同向，0＝無關，負值＝反向）。", ""]
+    pairs = [("類流感・呼吸道", "ili"), ("腸病毒", "ev"), ("腸胃道感染（腹瀉）", "diarrhea")]
+    lvn = ["低", "中", "高", "很高"]   # 與網頁年度表相同的標籤
+    L.append("第一版（完整版）的年度表以「月」為單位，一個月含兩個節氣，取兩者較高的分級，所以相鄰節氣會被一起標示，"
+             "判定可能是「部分一致」；第三版年度表依節氣直接使用 HIST，與歷史分級逐節氣相同。\n")
     for row, k in pairs:
         if row not in sea:
             L.append(f"- 找不到人工列「{row}」"); continue
@@ -523,7 +536,7 @@ def write_rules(R):
         L += [f"### 「{row}」 vs {SETS[k][1]}", "",
               "| 節氣 | " + " | ".join(NAMES[i] for i in order) + " |",
               "|---|" + "---|" * 24,
-              "| 人工等級 | " + " | ".join(lvn[x] for x in man) + " |",
+              "| 年度表等級（月） | " + " | ".join(lvn[x] for x in man) + " |",
               "| 歷史相對強度 | " + " | ".join(f"{x:.2f}" for x in his) + " |", "",
               f"- Spearman 相關：{rho:.2f}",
               f"- 明顯不一致的節氣：{'、'.join(dis) or '無'}",
@@ -539,6 +552,10 @@ def write_rules(R):
             hit = {k for w, k in kw if w in s}
             for k in sorted(hit):
                 r = ri(k, i)
+                if "接種" in s:
+                    L.append(f"| {NAMES[i]} | {s} | {SETS[k][1]} | {r:.2f} | 不適用（疫苗接種時程，不是流行程度） |")
+                    summary.append((f"節氣文字：{NAMES[i]}「{s}」", SETS[k][1], "不適用"))
+                    continue
                 rising = any(w in s for w in ("開始上升", "升溫", "上升"))
                 if rising:
                     prev = ri(k, (i - 1) % 24)

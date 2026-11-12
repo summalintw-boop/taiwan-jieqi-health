@@ -168,7 +168,7 @@ footer ul{padding-left:1.2em;margin:6px 0}
   <div class="detail" id="detail" hidden></div>
 
   <h2>一年 24 節氣</h2>
-  <p class="lede">各節氣的 30 年平均溫度（1991–2020，<span id="yr-st"></span>）與常見疾病的季節性。疾病等級依疾管署歷年流行季節與文獻歸納，以節氣所在月份換算，不是即時預測。</p>
+  <p class="lede">各節氣的 30 年平均溫度（1991–2020，<span id="yr-st"></span>）與常見疾病的季節性。「類流感・呼吸道」「腸病毒」「腸胃道感染（腹瀉）」依疾管署 2016–2025 年健保門診資料計算；其他項目依文獻人工整理、以節氣所在月份換算，待專家審閱。都不是即時預測。</p>
   <div class="yrwrap"><table class="yr" id="yr"></table></div>
 
   <h2>群體監測：依節氣看就診趨勢</h2>
@@ -295,7 +295,8 @@ function renderYear(){
     h+='<tr><td>平均最高溫 °C</td>'+cols.map(x=>`<td class="${x.i===c.i?'cur':''}"><span class="hi">${NORM.stations[st][x.i][0].toFixed(0)}</span></td>`).join('')+'</tr>';
     h+='<tr><td>平均最低溫 °C</td>'+cols.map(x=>`<td class="${x.i===c.i?'cur':''}"><span class="lo">${NORM.stations[st][x.i][1].toFixed(0)}</span></td>`).join('')+'</tr>';
   }
-  SEA.forEach(([n,a])=>{h+=`<tr><td>${n}</td>`+cols.map(x=>{const v=a[x.m-1];return `<td class="${x.i===c.i?'cur':''}"><span class="lvc v${v}">${lvT[v]}</span></td>`;}).join('')+'</tr>';});
+  const HROW={'類流感・呼吸道':'ili','腸病毒':'ev','腸胃道感染（腹瀉）':'diarrhea'}; // 這三列依節氣直接用疾管署歷史分級
+  SEA.forEach(([n,a])=>{h+=`<tr><td>${n}</td>`+cols.map(x=>{const v=HROW[n]?+HIST[HROW[n]][x.i]:a[x.m-1];return `<td class="${x.i===c.i?'cur':''}"><span class="lvc v${v}">${lvT[v]}</span></td>`;}).join('')+'</tr>';});
   $('yr').innerHTML=h+'</tbody>';
 }
 
